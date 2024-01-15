@@ -1,0 +1,110 @@
+\documentclass{article}
+
+% Packages
+\usepackage{fuzz}
+\usepackage[margin=1.8in]{geometry}
+\usepackage{graphicx}
+% Metadata
+\title{\vspace{-4.0cm}Final Assignment}
+\author{Anonymous}
+\date{January 2024}
+
+% Start
+\begin{document}
+
+\vspace{-1cm}
+\maketitle
+
+% Question 1
+\section*{Q1}
+\subsection*{a)}
+
+$(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
+
+\begin{table}[h!]
+\begin{tabular}{|c c c c c|} 
+\hline 
+$p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\ [0.2ex] 
+\hline
+\em{t} & \em{f} & ? & ? & ?  \\ 
+\em{f} & \em{f} & ? & ? & ?  \\
+\em{f} & \em{t} & ? & ? & ?  \\
+\em{t} & \em{t} & ? & ? & ?  \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{b)}
+
+$((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
+
+\begin{table}[h!]
+\scalebox{0.85}{
+\begin{tabular}{|c c c c c c c c|} 
+\hline 
+$p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \lor (q \lor r)$ & $((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$ \\ [0.2ex] 
+\hline
+\em{t} & \em{f} & \em{f} & ? & ? & ? & ? & ?  \\ 
+\em{f} & \em{f} & \em{f} & ? & ? & ? & ? & ?  \\
+\em{f} & \em{t} & \em{f} & ? & ? & ? & ? & ?  \\
+\em{t} & \em{t} & \em{f} & ? & ? & ? & ? & ?  \\
+\em{t} & \em{f} & \em{t} & ? & ? & ? & ? & ?  \\ 
+\em{f} & \em{f} & \em{t} & ? & ? & ? & ? & ?  \\
+\em{f} & \em{t} & \em{t} & ? & ? & ? & ? & ?  \\
+\em{t} & \em{t} & \em{t} & ? & ? & ? & ? & ?  \\
+\hline
+\end{tabular}}
+\end{table}
+
+
+% Question 2
+\section*{Q2}
+
+\begin{zed} (p \land q) \implies (p \iff q) 
+\also \vspace{-0.25cm} \iff a
+\also \vspace{-0.25cm} \iff b 
+\also \vspace{-0.25cm} \iff c 
+\also \vspace{-0.25cm} \iff d 
+\also \vspace{-0.25cm} \iff e \vspace{0.25cm}
+\also ((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))
+\also \vspace{-0.25cm} \iff a
+\also \vspace{-0.25cm} \iff b 
+\also \vspace{-0.25cm} \iff c 
+\also \vspace{-0.25cm} \iff d
+\also \vspace{-0.25cm} \iff e 
+\end{zed}
+
+% Question 3
+\section*{Q3}
+...
+
+% Question 4
+\section*{Q4}
+...
+
+% Question 5
+\section*{Q5}
+...
+
+% Question 6
+\section*{Q6}
+...
+
+% Question 7
+\section*{Q7}
+...
+
+% Question 8
+\section*{Q8}
+...
+
+% Question 9
+\section*{Q9}
+...
+
+% Question 10
+\section*{Q10}
+...
+
+% End
+\end{document}
