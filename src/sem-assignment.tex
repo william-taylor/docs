@@ -1,43 +1,28 @@
 \documentclass{article}
 
-
-
-% Question Order
-%
-% Tuesday: 1,2
-% Wednesday: 4
-% Thursday: 8
-% Friday: 8
-% Saturday: 9
-% Sunday: 10
-% Monday: 3
-% Tuesday 5
-
-
 % Packages
 \usepackage{fuzz}
-\usepackage[margin=1.8in]{geometry}
+\usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
+
 % Metadata
-\title{\vspace{-4.0cm}Final Assignment}
-\date{January 2024}
+\title{\vspace{-2.0cm}Final Assignment}
+\date{\vspace{-1.0cm}27th February 2024}
 
 % Start
 \begin{document}
-
 \vspace{-1cm}
 \maketitle
 
 % Question 1
 \section*{Q1}
-\subsection*{a)}
 
-$(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
+a) $(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
 
 \begin{table}[h!]
 \begin{tabular}{|c c c c c|} 
 \hline 
-$p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\ [0.2ex] 
+$p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\
 \hline
 \em{t} & \em{f} & \em{f} & \em{f} & \em{t}  \\ 
 \em{f} & \em{f} & \em{f} & \em{t} & \em{t}  \\
@@ -47,15 +32,12 @@ $p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\ [0.2
 \end{tabular}
 \end{table}
 
-\subsection*{b)}
-
-$((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
+\hspace{-0.6cm} b) $((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
 
 \begin{table}[h!]
-\scalebox{0.85}{
 \begin{tabular}{|c c c c c c c c|} 
 \hline 
-$p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \lor (q \lor r)$ & $((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$ \\ [0.2ex] 
+$p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \lor (q \lor r)$ & $((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$ \\
 \hline
 \em{t} & \em{f} & \em{f} & \em{t} & \em{f} & \em{f} & \em{f} & \em{t}  \\ 
 \em{f} & \em{f} & \em{f} & \em{f} & \em{f} & \em{t} & \em{t} & \em{t}  \\
@@ -66,40 +48,48 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 \em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
 \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
 \hline
-\end{tabular}}
+\end{tabular}
 \end{table}
-
 
 % Question 2
 \section*{Q2}
-\begin{zed} (p \land q) \implies (p \iff q) 
-\also \vspace{-0.25cm} \iff (\lnot (p \land q)) \lor (p \iff q)  
-\also \vspace{-0.25cm} \iff (\lnot (p \land q)) \lor ((p \implies q) \land (q \implies p))
-\also \vspace{-0.25cm} \iff (\lnot (p \land q)) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) 
-\also \vspace{-0.25cm} \iff (\lnot p \lor \lnot q) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) 
-\also \vspace{-0.25cm} \iff ((\lnot p \lor \lnot q) \lor (\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p))  
-\also \vspace{-0.25cm} \iff ((\lnot p \lor \lnot p) \lor (\lnot q \lor q)) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q)) 
-\also \vspace{-0.25cm} \iff ((\lnot p \lor \lnot p) \lor true) \land (true \lor (\lnot q \lor \lnot q)) 
-\also \vspace{-0.25cm} \iff true \land true
-\also \vspace{-0.25cm} \iff true \vspace{0.25cm}
-\also ((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff (\lnot ((p \lor q) \implies r)) \lor ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff (\lnot (\lnot (p \lor q) \lor r)) \lor ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff ((\lnot \lnot (p \lor q) \land \lnot r)) \lor ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff ((p \lor q) \land \lnot r) \lor ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor (\lnot r \land q) \lor ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor ((\lnot r \land q) \lor r) \lor (\lnot p \lor q) 
-\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor ((r \lor \lnot r) \land (r \lor q)) \lor (\lnot p \lor q) 
-\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor (true \land (r \lor q)) \lor (\lnot p \lor q) 
-\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor (r \lor q) \lor (\lnot p \lor q) 
-\also \vspace{-0.25cm} \iff ((\lnot r \land p) \lor r) \lor (q \lor (\lnot p \lor q)) 
-\also \vspace{-0.25cm} \iff ((r \lor \lnot r) \land (r \lor p)) \lor (q \lor (\lnot p \lor q)) 
-\also \vspace{-0.25cm} \iff (true \land (r \lor p)) \lor (q \lor (\lnot p \lor q)) 
-\also \vspace{-0.25cm} \iff ((r \lor p)) \lor (q \lor (\lnot p \lor q)) 
-\also \vspace{-0.25cm} \iff ((r \lor q)) \lor (p \lor \lnot p) \lor q 
-\also \vspace{-0.25cm} \iff ((r \lor q)) \lor true \lor q 
-\also \vspace{-0.25cm} \iff true
-\end{zed}
+
+\begin{argue} 
+\hspace{-0.5cm} (p \land q) \implies (p \iff q) \vspace{0.2cm} \\
+\iff (\lnot (p \land q)) \lor (p \iff q) & implication-disjunction \\ 
+\iff (\lnot (p \land q)) \lor ((p \implies q) \land (q \implies p)) & equivalence-implication \\ 
+\iff (\lnot (p \land q)) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & implication-disjunction \\ 
+\iff (\lnot p \lor \lnot q) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & De Morgan 1 \\
+\iff ((\lnot p \lor \lnot q) \lor (\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p)) & distributivity 2 \\
+\iff ((\lnot p \lor \lnot p) \lor (\lnot q \lor q)) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q)) & associativity of $\lor$ \\
+\iff ((\lnot p \lor \lnot p) \lor true) \land (true \lor (\lnot q \lor \lnot q)) & excluded middle \\
+\iff true \land true & true is the zero of $\lor$ \\
+\iff true & true is the unit of $\land$ \\
+\end{argue}
+
+\begin{argue} 
+\hspace{-0.5cm} ((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r )) \vspace{0.2cm} \\
+\iff (\lnot ((p \lor q) \implies r)) \lor ( \lnot p \lor ( q \lor r )) & implication-disjunction  \\
+\iff (\lnot (\lnot (p \lor q) \lor r)) \lor ( \lnot p \lor ( q \lor r )) & implication-disjunction  \\
+\iff ((\lnot \lnot (p \lor q) \land \lnot r)) \lor ( \lnot p \lor ( q \lor r )) & De Morgan 2 \\
+\iff ((p \lor q) \land \lnot r) \lor ( \lnot p \lor ( q \lor r )) & negation is an involution \\
+\iff (\lnot r \land (p \lor q)) \lor ( \lnot p \lor ( q \lor r ))  & commutativity of $\land$  \\
+\iff (\lnot r \land p) \lor (\lnot r \land q) \lor ( \lnot p \lor ( q \lor r )) & distributivity 1 \\
+\iff (\lnot r \land p) \lor (\lnot r \land q) \lor (r \lor (\lnot p \lor q)) & associativity or $\lor$ \\
+\iff (\lnot r \land p) \lor ((\lnot r \land q) \lor r) \lor (\lnot p \lor q) & associativity or $\lor$ \\
+\iff (\lnot r \land p) \lor ((r \lor \lnot r) \land (r \lor q)) \lor (\lnot p \lor q) & distributivity 2 \\
+\iff (\lnot r \land p) \lor (true \land (r \lor q)) \lor (\lnot p \lor q) & excluded middle \\
+\iff (\lnot r \land p) \lor (r \lor q) \lor (\lnot p \lor q) & true is the unit of $\land$ \\
+\iff ((\lnot r \land p) \lor r) \lor (q \lor (\lnot p \lor q)) & associativity or $\lor$ \\
+\iff ((r \lor \lnot r) \land (r \lor p)) \lor (q \lor (\lnot p \lor q)) & distributivity 2 \\
+\iff (true \land (r \lor p)) \lor (q \lor (\lnot p \lor q)) & excluded middle \\
+\iff (r \lor p) \lor (q \lor (\lnot p \lor q)) & true is the unit of $\land$ \\
+\iff (r \lor p) \lor (\lnot p \lor (q \lor q)) & associativity or $\lor$ \\
+\iff (r \lor p) \lor (\lnot p \lor q) & idempotence or $\lor$ \\
+\iff r \lor (p \lor \lnot p) \lor q & associativity or $\lor$ \\
+\iff r \lor true \lor q & excluded middle \\
+\iff true & true is the zero of $\lor$ \\
+\end{argue}
 
 % Question 3
 \section*{Q3}
@@ -107,11 +97,27 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 
 % Question 4
 \section*{Q4}
-...
+
+\begin{gendef}[X]
+	occurs\_once: \power (\power X) \fun \power X \\
+\where
+	\forall A: \power (\power X) @ \\
+\t1     occurs\_once(A) = \{ x: X \mid (\exists_1 S : A @ x \in S) \}
+\end{gendef}
 
 % Question 5
 \section*{Q5}
-...
+
+\begin{argue} 
+\hspace{-0.6cm} x \mapsto z \in R \semi (S \cup T) \vspace{0.2cm} \\
+\iff (\exists y: Y @ x \mapsto y \in R \land y \mapsto z \in (S \cup T)) & equivalence \\
+\iff (\exists y: Y @ x \mapsto y \in R \land (y \mapsto z \in S \lor y \mapsto z \in T)) & union \\
+\iff (\exists y: Y @ (x \mapsto y \in R \land y \mapsto z \in S) \lor (x \mapsto y \in R \land y \mapsto z \in T)) & distributivity 1 \\ 
+\iff (\exists y: Y @ x \mapsto y \in R \land y \mapsto z \in S) \lor (\exists y: Y @ x \mapsto y \in R \land y \mapsto z \in T) & $\exists$ distributes over $\lor$ \\
+\iff (x \mapsto z \in R \semi S) \lor (\exists y: Y @ x \mapsto y \in R \land y \mapsto z \in T) & equivalence \\ 
+\iff (x \mapsto z \in R \semi S) \lor (x \mapsto z \in R \semi T) & equivalence \\
+\iff x \mapsto z \in (R \semi S) \cup (R \semi T) & union \\
+\end{argue}
 
 % Question 6
 \section*{Q6}
