@@ -1,12 +1,25 @@
 \documentclass{article}
 
+
+
+% Question Order
+%
+% Tuesday: 1,2
+% Wednesday: 4
+% Thursday: 8
+% Friday: 8
+% Saturday: 9
+% Sunday: 10
+% Monday: 3
+% Tuesday 5
+
+
 % Packages
 \usepackage{fuzz}
 \usepackage[margin=1.8in]{geometry}
 \usepackage{graphicx}
 % Metadata
 \title{\vspace{-4.0cm}Final Assignment}
-\author{Anonymous}
 \date{January 2024}
 
 % Start
@@ -26,10 +39,10 @@ $(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
 \hline 
 $p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\ [0.2ex] 
 \hline
-\em{t} & \em{f} & ? & ? & ?  \\ 
-\em{f} & \em{f} & ? & ? & ?  \\
-\em{f} & \em{t} & ? & ? & ?  \\
-\em{t} & \em{t} & ? & ? & ?  \\
+\em{t} & \em{f} & \em{f} & \em{f} & \em{t}  \\ 
+\em{f} & \em{f} & \em{f} & \em{t} & \em{t}  \\
+\em{f} & \em{t} & \em{f} & \em{f} & \em{t}  \\
+\em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
 \hline
 \end{tabular}
 \end{table}
@@ -44,14 +57,14 @@ $((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tau
 \hline 
 $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \lor (q \lor r)$ & $((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$ \\ [0.2ex] 
 \hline
-\em{t} & \em{f} & \em{f} & ? & ? & ? & ? & ?  \\ 
-\em{f} & \em{f} & \em{f} & ? & ? & ? & ? & ?  \\
-\em{f} & \em{t} & \em{f} & ? & ? & ? & ? & ?  \\
-\em{t} & \em{t} & \em{f} & ? & ? & ? & ? & ?  \\
-\em{t} & \em{f} & \em{t} & ? & ? & ? & ? & ?  \\ 
-\em{f} & \em{f} & \em{t} & ? & ? & ? & ? & ?  \\
-\em{f} & \em{t} & \em{t} & ? & ? & ? & ? & ?  \\
-\em{t} & \em{t} & \em{t} & ? & ? & ? & ? & ?  \\
+\em{t} & \em{f} & \em{f} & \em{t} & \em{f} & \em{f} & \em{f} & \em{t}  \\ 
+\em{f} & \em{f} & \em{f} & \em{f} & \em{f} & \em{t} & \em{t} & \em{t}  \\
+\em{f} & \em{t} & \em{f} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t}  \\
+\em{t} & \em{t} & \em{f} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t}  \\
+\em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\ 
+\em{f} & \em{f} & \em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t}  \\
+\em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
+\em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
 \hline
 \end{tabular}}
 \end{table}
@@ -59,19 +72,33 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 
 % Question 2
 \section*{Q2}
-
 \begin{zed} (p \land q) \implies (p \iff q) 
-\also \vspace{-0.25cm} \iff a
-\also \vspace{-0.25cm} \iff b 
-\also \vspace{-0.25cm} \iff c 
-\also \vspace{-0.25cm} \iff d 
-\also \vspace{-0.25cm} \iff e \vspace{0.25cm}
+\also \vspace{-0.25cm} \iff (\lnot (p \land q)) \lor (p \iff q)  
+\also \vspace{-0.25cm} \iff (\lnot (p \land q)) \lor ((p \implies q) \land (q \implies p))
+\also \vspace{-0.25cm} \iff (\lnot (p \land q)) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) 
+\also \vspace{-0.25cm} \iff (\lnot p \lor \lnot q) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) 
+\also \vspace{-0.25cm} \iff ((\lnot p \lor \lnot q) \lor (\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p))  
+\also \vspace{-0.25cm} \iff ((\lnot p \lor \lnot p) \lor (\lnot q \lor q)) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q)) 
+\also \vspace{-0.25cm} \iff ((\lnot p \lor \lnot p) \lor true) \land (true \lor (\lnot q \lor \lnot q)) 
+\also \vspace{-0.25cm} \iff true \land true
+\also \vspace{-0.25cm} \iff true \vspace{0.25cm}
 \also ((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))
-\also \vspace{-0.25cm} \iff a
-\also \vspace{-0.25cm} \iff b 
-\also \vspace{-0.25cm} \iff c 
-\also \vspace{-0.25cm} \iff d
-\also \vspace{-0.25cm} \iff e 
+\also \vspace{-0.25cm} \iff (\lnot ((p \lor q) \implies r)) \lor ( \lnot p \lor ( q \lor r ))
+\also \vspace{-0.25cm} \iff (\lnot (\lnot (p \lor q) \lor r)) \lor ( \lnot p \lor ( q \lor r ))
+\also \vspace{-0.25cm} \iff ((\lnot \lnot (p \lor q) \land \lnot r)) \lor ( \lnot p \lor ( q \lor r ))
+\also \vspace{-0.25cm} \iff ((p \lor q) \land \lnot r) \lor ( \lnot p \lor ( q \lor r ))
+\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor (\lnot r \land q) \lor ( \lnot p \lor ( q \lor r ))
+\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor ((\lnot r \land q) \lor r) \lor (\lnot p \lor q) 
+\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor ((r \lor \lnot r) \land (r \lor q)) \lor (\lnot p \lor q) 
+\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor (true \land (r \lor q)) \lor (\lnot p \lor q) 
+\also \vspace{-0.25cm} \iff (\lnot r \land p) \lor (r \lor q) \lor (\lnot p \lor q) 
+\also \vspace{-0.25cm} \iff ((\lnot r \land p) \lor r) \lor (q \lor (\lnot p \lor q)) 
+\also \vspace{-0.25cm} \iff ((r \lor \lnot r) \land (r \lor p)) \lor (q \lor (\lnot p \lor q)) 
+\also \vspace{-0.25cm} \iff (true \land (r \lor p)) \lor (q \lor (\lnot p \lor q)) 
+\also \vspace{-0.25cm} \iff ((r \lor p)) \lor (q \lor (\lnot p \lor q)) 
+\also \vspace{-0.25cm} \iff ((r \lor q)) \lor (p \lor \lnot p) \lor q 
+\also \vspace{-0.25cm} \iff ((r \lor q)) \lor true \lor q 
+\also \vspace{-0.25cm} \iff true
 \end{zed}
 
 % Question 3
