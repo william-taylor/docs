@@ -1,0 +1,177 @@
+% FILE. . . . . /_/udir5/_/gallier/texmacs/prooftree.tex
+% EDIT BY . . . Jean Gallier
+% ON MACHINE. . Prlp30
+% STARTED ON. . Mon Oct 15 15:23:39 1990
+
+% Last modified on Wed May 29 16:33:58 1991 by Gallier
+
+%
+% Fake \line (from page 353 of TEX manual
+%
+\def\ligne{\hbox to\hsize}
+%
+
+\newdimen\tempa
+\newdimen\tempb
+\newdimen\dimenlastbox
+% Join the box given as argument to the previous box
+\def\step#1{
+       \setbox1\lastbox
+       \setbox2\hbox{#1}
+       \ifdim \the\dimenlastbox > 1\wd2
+       \tempb \the\dimenlastbox \else
+       \tempb 1\wd2\fi
+       \global\dimenlastbox 1\wd2
+       \ifdim 1\wd1 > 1\wd2
+       \tempa 1\wd1
+       \setbox2\hbox to \the\tempa{\hfill\box2\hfill}
+       \else
+       \tempa 1\wd2
+       \setbox1\hbox to \the\tempa{\hfill\box1\hfill}\fi
+       \vbox{\baselineskip 0pt\box1\vskip 3pt%
+\hbox to \the\tempa{\hss\vbox{\hrule width \the\tempb}\hss}%
+\vskip 3pt%
+\box2}}
+%
+%
+\def\matth{\mathsurround=0pt}
+\def\brokenlinefill{$\matth \mathord-\mkern-5mu%
+\cleaders\hbox{$\mathord-$}\hfill\mkern-5mu\mathord-$}
+%
+% Join the box given as argument to the previous box using a broken line
+\def\brokstep#1{
+       \setbox1\lastbox
+       \setbox2\hbox{#1}
+       \ifdim \the\dimenlastbox > 1\wd2
+       \tempb \the\dimenlastbox \else
+       \tempb 1\wd2\fi
+       \global\dimenlastbox 1\wd2
+       \ifdim 1\wd1 > 1\wd2
+       \tempa 1\wd1
+       \setbox2\hbox to \the\tempa{\hfill\box2\hfill}
+       \else
+       \tempa 1\wd2
+       \setbox1\hbox to \the\tempa{\hfill\box1\hfill}\fi
+       \vbox{\baselineskip 0pt\box1%\vskip 3pt
+\hbox to \the\tempa{\hss\vbox{\hbox to \the\tempb{\brokenlinefill}}\hss}%
+%\vskip 3pt
+\box2}}
+%
+% Join like in \step, but also use the second argument as a justification
+\def\jstep#1#2{
+       \setbox1\lastbox
+       \setbox2\hbox{#1}
+       \ifdim \the\dimenlastbox > 1\wd2
+       \tempb \the\dimenlastbox \else
+       \tempb 1\wd2\fi
+       \global\dimenlastbox 1\wd2
+       \ifdim 1\wd1 > 1\wd2
+       \tempa 1\wd1
+       \setbox2\hbox to \the\tempa{\hfill\box2\hfill}
+       \else
+       \tempa 1\wd2
+       \setbox1\hbox to \the\tempa{\hfill\box1\hfill}\fi
+       \vbox{\baselineskip 0pt\box1%
+\vskip-4pt%
+\hbox{\hbox to \the\tempa{\hss\vbox{\hrule width \the\tempb}
+$\vcenter{\hbox to 0pt{\strut\quad#2\hss}}$%
+\hss}}%
+\box2}}
+\def\istep#1{% Join invisibly - ie. put no line between boxes
+       \setbox1\lastbox
+       \setbox2\hbox{#1}
+       \ifdim \the\dimenlastbox > 1\wd2
+       \tempb \the\dimenlastbox \else
+       \tempb 1\wd2\fi
+       \global\dimenlastbox 1\wd2
+       \ifdim 1\wd1 > 1\wd2
+       \tempa 1\wd1
+       \setbox2\hbox to \the\tempa{\hfill\box2\hfill}
+       \else
+       \tempa 1\wd2
+       \setbox1\hbox to \the\tempa{\hfill\box1\hfill}\fi
+       \vbox{\baselineskip 0pt\box1\vskip 6pt\box2}}
+\def\strstep#1{%Thinning, contraction, and interchange
+       \setbox1\lastbox
+       \setbox2\hbox{#1}
+       \ifdim \the\dimenlastbox > 1\wd2
+       \tempb \the\dimenlastbox \else
+       \tempb 1\wd2\fi
+       \global\dimenlastbox 1\wd2
+       \ifdim 1\wd1 > 1\wd2
+       \tempa 1\wd1
+       \setbox2\hbox to \the\tempa{\hfill\box2\hfill}
+       \else
+       \tempa 1\wd2
+       \setbox1\hbox to \the\tempa{\hfill\box1\hfill}\fi
+       \vbox{\baselineskip 0pt\box1\vskip3pt%
+\hbox{\hbox to \the\tempa{\hss\vbox{\hrule width \the\tempb\vskip3pt%
+\hrule width \the\tempb}\hss}}\vskip 3pt\box2}}
+\def\settree#1#2{\setbox#1\vbox{#2}}
+\def\starttree#1{\setbox1 \hbox{#1}\dimenlastbox 1\wd1\box1}
+\def\jointrees#1#2{
+    \starttree{\box#1\hskip60pt\box#2}}
+\def\njointrees#1#2{
+    \starttree{\box#1\hskip25pt\box#2}}
+\def\vnjointrees#1#2{
+    \starttree{\box#1\hskip8pt\box#2}}
+\def\snjointrees#1#2{
+    \starttree{\box#1\hskip2pt\box#2}}
+\def\tjointrees#1#2#3{
+    \starttree{\box#1\hskip35pt\box#2\hskip35pt\box#3}}
+\def\tnjointrees#1#2#3{
+    \starttree{\box#1\hskip20pt\box#2\hskip20pt\box#3}}
+\def\tsnjointrees#1#2#3{
+    \starttree{\box#1\hskip10pt\box#2\hskip10pt\box#3}}
+
+%%  Example:
+%%
+%
+%\settree1{
+%       \starttree{This}
+%       \jstep{is}{and-IA}
+%       \step{a}
+%       \jstep{hard and difficult}{or-IA}
+%       \step{test.}}
+%\settree2{
+%       \starttree{This}
+%       \step{is}
+%       \jstep{a}{imp-IS}
+%       \step{test.}}
+%\settree1{
+%       \jointrees{1}{2}
+%       \step{This}
+%       \step{is}
+%       \jstep{a}{all-IA}
+%       \step{test.}}
+%\setbox2\copy1
+%\settree1{
+%       \jointrees{1}{2}
+%       \jstep{The}{big-IA}
+%       \step{End}}
+%
+%\ligne{\hfill\box1\hfill}
+%
+%  introduce antecedent rule names
+\def\oria{\vee:left}
+\def\andia{\and:left}
+\def\impia{\supset:left}
+\def\allia{\all:left}
+\def\someia{\some:left}
+\def\negia{\neg:left}
+\def\PIia{\Pi:left}
+%  introduce succedent rule names
+\def\oris{\vee:right}
+\def\andis{\and:right}
+\def\impis{\supset:right}
+\def\allis{\all:right}
+\def\someis{\some:right}
+\def\negis{\neg:right}
+\def\PIis{\Pi:right}
+%  eliminate negation from the antecedent
+\def\negea{\neg{\rm-EA}}
+\def\neges{\neg{\rm-ES}}
+\def\sequent#1#2{\hbox{{$#1 \rightarrow #2$}}}
+\def\impl{\Rightarrow}
+
+

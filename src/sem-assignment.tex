@@ -4,6 +4,7 @@
 \usepackage{fuzz}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
+\usepackage{prooftree}
 
 % Metadata
 \title{\vspace{-2.0cm}Final Assignment}
@@ -93,7 +94,25 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 
 % Question 3
 \section*{Q3}
-...
+
+% A
+\settree3{
+\starttree{$[p \land q] \small [1]$}
+\jstep{{$q$}}{$\scriptstyle \land elim1$}
+\jstep{$p \implies q$}{$\scriptstyle \implies$ intro}
+}
+\settree2{
+\starttree{$[p \land q] \small [1]$}
+\jstep{{$p$}}{$\scriptstyle \land elim2$}
+\jstep{$q \implies p$}{$\scriptstyle \implies$ intro}
+}
+\settree1{
+\njointrees{2}{3}
+\jstep{$p \iff q$}{[ $\iff$-intro ]}
+\jstep{$(p \land q) \implies (p \iff q)$}{$\scriptstyle \implies$-intro}
+}
+\bigskip
+\ligne{\hfill\box1\hfill}
 
 % Question 4
 \section*{Q4}
