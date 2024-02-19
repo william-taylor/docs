@@ -2,7 +2,7 @@
 
 % Packages
 \usepackage{fuzz}
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.5in]{geometry}
 \usepackage{graphicx}
 \usepackage{prooftree}
 
@@ -96,23 +96,75 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 \section*{Q3}
 
 % A
+
+\settree7{
+\starttree{$ (p \land q) \scriptstyle [1] $}
+\jstep{$ p $}{$\scriptstyle ... $}
+}
+
+\settree6{
+\starttree{$ [q] \scriptstyle [2] $}
+}
+
+
+\settree5{
+\starttree{$ (p \land q) \scriptstyle [1] $}
+\jstep{$ q $}{$\scriptstyle ... $}
+}
+
+\settree4{
+\starttree{$ [p] \scriptstyle [3] $}
+}
+
 \settree3{
-\starttree{$[p \land q] \small [1]$}
-\jstep{{$q$}}{$\scriptstyle \land elim1$}
-\jstep{$p \implies q$}{$\scriptstyle \implies$ intro}
+\jointrees{4}{5}
+\jstep{$q \land p$}{$\scriptstyle \land elim1$}
+\jstep{$q$}{$\scriptstyle \land elim1$}
+\jstep{$p \implies q$}{$\scriptstyle \implies intro$}
 }
 \settree2{
-\starttree{$[p \land q] \small [1]$}
-\jstep{{$p$}}{$\scriptstyle \land elim2$}
-\jstep{$q \implies p$}{$\scriptstyle \implies$ intro}
+\jointrees{6}{7}
+\step{$p \land q$}
+\jstep{$p$}{$\scriptstyle \land elim2$}
+\jstep{$q \implies p$}{$\scriptstyle \implies intro$}
 }
 \settree1{
-\njointrees{2}{3}
-\jstep{$p \iff q$}{[ $\iff$-intro ]}
-\jstep{$(p \land q) \implies (p \iff q)$}{$\scriptstyle \implies$-intro}
+\jointrees{2}{3}
+\jstep{$p \iff q$}{$\scriptstyle \iff intro$}
+\jstep{$(p \land q) \implies (p \iff q)$}{$\scriptstyle \implies intro$}
 }
 \bigskip
 \ligne{\hfill\box1\hfill}
+\vspace{1cm} 
+
+% B
+\settree4{
+\starttree{$ [r] \scriptstyle [1] $}
+\jstep{$ (q \lor r) $}{$\scriptstyle \lor intro2 $}
+\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor intro2 $}
+}
+
+\settree3{ 
+\starttree{$ [\lnot p \land \lnot q] \scriptstyle [1]$}
+\jstep{$ \lnot p $}{$\scriptstyle \and elim1 $}
+\jstep{$ \lnot p \lor q $}{$\scriptstyle \lor intro1$}
+\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor intro2$}
+}
+
+\settree2{
+\starttree{$ [p \lor q \implies r] \scriptstyle [1]$}
+\jstep{$ \lnot ( p \lor q) \lor r$}{$\scriptstyle $}
+\jstep{$ (\lnot p \land \lnot q) \lor r $}{$\scriptstyle $}
+}
+
+\settree1{
+\tjointrees{2}{3}{4}
+\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor elim [2]$}
+\jstep{$((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$}{$\scriptstyle \implies intro [1]$}
+}
+\bigskip
+\ligne{\hfill\box1\hfill}
+\vspace{1cm} 
 
 % Question 4
 \section*{Q4}
@@ -140,15 +192,56 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 
 % Question 6
 \section*{Q6}
-...
+
+\begin{axdef}
+	zoo: \seq Area
+\where
+	\forall area: (\ran zoo) @ \forall pair: (\dom(area) \cross \dom(area)) @ pair \in compatible \\
+	\forall animal: Animal @ \# \{ area: ran(zoo) | animal \inbag area \} \leq 1 \\
+	\forall area: (\ran zoo) @ \# \bigcap  \{ animal: \dom possible\_foods | animal \inbag area @ possible\_foods(animal) \} \geq 1
+\end{axdef}
+
 
 % Question 7
 \section*{Q7}
-...
+
+\begin{axdef}
+	removeAnimal: Area \cross Animal \pfun Area
+\where
+	\forall a: Area, x: Animal @ \\
+		\t1 removeAnimal(a, x) = a \uminus x
+\end{axdef}
+
+
+\begin{axdef} %add constraints
+	addAnimal: Area \cross Animal \pfun Area
+\where
+	\forall a: Area, x: Animal @ \\
+		\t1 addAnimal(a, x) = a \uplus x
+\end{axdef}
+
+	
+\begin{axdef} %add constraints
+	moveAnimal: Area \cross Area \cross Animal \pfun Area \cross Area
+\where
+\forall a1, a2: Area, x: Animal @ \\
+	\t1 moveAnimal(a1, a2, x) = \\ \t2 (removeAnimal(a1, x), addAnimal(a2, x))
+\end{axdef}
 
 % Question 8
 \section*{Q8}
-...
+
+\begin{axdef}
+	present: Colour \cross MixedColour \fun YesNo
+\where
+	...
+\end{axdef}
+
+\begin{axdef}
+	addcolour: Colour \cross MixedColour \fun MixedColour
+\where
+	...
+\end{axdef}
 
 % Question 9
 \section*{Q9}
