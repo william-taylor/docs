@@ -2,22 +2,22 @@
 
 % Packages
 \usepackage{fuzz}
-\usepackage[margin=0.5in]{geometry}
+\usepackage[margin=1.0in]{geometry}
 \usepackage{graphicx}
 \usepackage{prooftree}
 
 % Metadata
-\title{\vspace{-2.0cm}Final Assignment}
+\title{Final Assignment}
 \date{\vspace{-1.0cm}27th February 2024}
 
 % Start
 \begin{document}
-\vspace{-1cm}
 \maketitle
 
 % Question 1
 \section*{Q1}
 
+\subsection*{\small a)}
 $(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
 
 \begin{table}[h!]
@@ -33,7 +33,8 @@ $p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\
 \end{tabular}
 \end{table}
 
-\hspace{-0.6cm} $((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
+\subsection*{\small b)}
+$((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
 
 \begin{table}[h!]
 \begin{tabular}{|c c c c c c c c c|} 
@@ -55,8 +56,9 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 % Question 2
 \section*{Q2}
 
+\vspace{0.3cm}
 \begin{argue} 
-\hspace{-0.5cm} (p \land q) \implies (p \iff q) \vspace{0.2cm} \\
+(p \land q) \implies (p \iff q) \vspace{0.2cm}  \\
 \iff (\lnot (p \land q)) \lor (p \iff q) & implication-disjunction \\ 
 \iff (\lnot (p \land q)) \lor ((p \implies q) \land (q \implies p)) & equivalence-implication \\ 
 \iff (\lnot (p \land q)) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & implication-disjunction \\ 
@@ -67,9 +69,10 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \iff true \land true & true is the zero of $\lor$ \\
 \iff true & true is the unit of $\land$ \\
 \end{argue}
+\pagebreak
 
 \begin{argue} 
-\hspace{-0.5cm} ((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r )) \vspace{0.2cm} \\
+((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r )) \vspace{0.2cm} \\
 \iff (\lnot ((p \lor q) \implies r)) \lor ( \lnot p \lor ( q \lor r )) & implication-disjunction  \\
 \iff (\lnot (\lnot (p \lor q) \lor r)) \lor ( \lnot p \lor ( q \lor r )) & implication-disjunction  \\
 \iff ((\lnot \lnot (p \lor q) \land \lnot r)) \lor ( \lnot p \lor ( q \lor r )) & De Morgan 2 \\
@@ -94,9 +97,9 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 
 % Question 3
 \section*{Q3}
+\vspace{0.3cm}
 
-% A
-
+% Tree 1
 \settree7{
 \starttree{$ (p \land q) \scriptstyle [1] $}
 \jstep{$ p $}{$\scriptstyle \land-elim1 $}
@@ -133,11 +136,11 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \jstep{$(p \land q) \implies (p \iff q)$}{$\scriptstyle \implies-intro [1]$}
 }
 \bigskip
-\hspace{-0.6cm} 
+
 \ligne{\hfill\box1\hfill}
 \vspace{1cm} 
 
-% B
+% Tree 2
 \settree4{
 \starttree{$ [r] \scriptstyle [2] $}
 \jstep{$ (q \lor r) $}{$\scriptstyle \lor-intro2 $}
@@ -165,9 +168,11 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \bigskip
 \hspace{-1.2cm} 
 \ligne{\hfill\box1\hfill}
+\pagebreak
 
 % Question 4
 \section*{Q4}
+\vspace{0.3cm}
 
 \begin{gendef}[X]
 	occurs\_once: \power (\power X) \fun \power X \\
@@ -178,9 +183,10 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 
 % Question 5
 \section*{Q5}
+\vspace{0.3cm}
 
 \begin{argue} 
-\hspace{-0.6cm} x \mapsto z \in R \semi (S \cup T) \vspace{0.2cm} \\
+x \mapsto z \in R \semi (S \cup T) \vspace{0.2cm} \\
 \iff (\exists y: Y @ x \mapsto y \in R \land y \mapsto z \in (S \cup T)) & equivalence \\
 \iff (\exists y: Y @ x \mapsto y \in R \land (y \mapsto z \in S \lor y \mapsto z \in T)) & union \\
 \iff (\exists y: Y @ (x \mapsto y \in R \land y \mapsto z \in S) \lor (x \mapsto y \in R \land y \mapsto z \in T)) & distributivity 1 \\ 
@@ -192,6 +198,7 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 
 % Question 6
 \section*{Q6}
+\vspace{0.3cm}
 
 \begin{axdef}
 	zoo: \seq Area
@@ -205,13 +212,14 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 % Question 7
 \section*{Q7}
 
+\subsection*{\small a)}
 \begin{axdef} 
 	removeAnimal: Area \cross Animal \pfun Area
 \where
 	removeAnimal = \lambda a: Area; x: Animal \mid x \inbag a \spot a \uminus \lbag x \rbag \\
 \end{axdef}
 
-
+\subsection*{\small b)}
 \begin{axdef} 
 	addAnimal: Area \cross Animal \pfun Area
 \where
@@ -219,8 +227,8 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 		\t1 \{ x \} \cross \dom(a) \subseteq compatible \land \bigcap possible\_foods\ \limg \{ x \} \cup dom(a) \rimg \neq \emptyset \spot  \\
 		\t2 addAnimal(a, x) = a \uplus \lbag x \rbag
 \end{axdef}
-
 	
+\subsection*{\small c)}
 \begin{axdef} %use lambda must be in a1 and not in a2, 
 	moveAnimal: Area \cross Area \cross Animal \pfun Area \cross Area
 \where
@@ -232,6 +240,7 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 % Question 8
 \section*{Q8}
 
+\subsection*{\small a)}
 \begin{axdef}
 	present: Colour \cross MixedColour \fun YesNo \\
 \where
@@ -242,86 +251,95 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 	\t1 present(c, mix(m1, m2)) = present(c, m1)\ Or\ present(c, m2) \\
 \end{axdef}
 
+
+\subsection*{\small b)}
 \begin{axdef}
 	addcolour: Colour \cross MixedColour \fun MixedColour \\
 \where
-	\forall c1, c2: Color \\
+	\forall c1, c2: Color @ \\
 		\t1 addcolour(c1, base\ c2) = mix(base\ c1, base\ c2) \\
-	\forall c: Colour; m1, m2: MixedColour \\
+	\forall c: Colour; m1, m2: MixedColour @ \\
 		\t1 addcolour(c, mix(m1, m2)) = mix(base\ c, mix(m1, m2)) \\
  \end{axdef}
 
 % Question 9
 \section*{Q9}
+\vspace{0.3cm}
 
 \begin{argue} 
-\hspace{-0.8cm} present(c1, addcolour(c1, base\ c2)) \vspace{0.1cm}  \\
+present(c1, addcolour(c1, base\ c2)) \vspace{0.1cm}  \\
 = present(c1, mix(base\ c1, base\ c2)) & addcolour \\
 = present(c1, base\ c1)\ Or\ present(c1, base\ c2) & present \\
-= yes\ Or\ No & present \\
+= yes\ Or\ no & present \\
 = yes & Or \\
 \end{argue}
 
 \begin{argue} 
-\hspace{-0.8cm} present(c, addcolour(c, mix(m1, m2))) \vspace{0.1cm}  \\
+present(c, addcolour(c, mix(m1, m2))) \vspace{0.1cm}  \\
 = present(c, mix(base\ c, mix(m1, m2))) & addcolour \\
-= present(c, base\ c)\ Or\ present(c, mix(m1, m2)) & present \\
-= yes\ Or\ present(c, mix(m1, m2)) & present \\
-= yes & Or   \\
+= present(c, mix(base\ c, m1))\ Or\ present(c, mix(base\ c, m2)) & distributivity \\
+= present(c, addcolour(c, m1))\ Or\ present(c, addcolour(c, m2)) & addcolour \\ 
+= yes\ Or\ yes & $P(c, m1) \land P(c, m2)$ \\
+= yes & Or \\
 \end{argue}
 	
 
 % Question 10
 \section*{Q10}
 
-\vspace{0.5cm}
+\subsection*{\small a)}
 \begin{infrule}
 P(nil) \\
-\forall s: \iseq \nat; l: SeqList \spot P(s) \implies P(join(s, l))
+\forall s: \iseq \nat; l: SeqList \spot P(l) \implies P(join(s, l))
 \derive
-\forall s: \iseq \nat \spot P(s)
+\forall l: SeqList \spot P(l)
 \end{infrule}
 
+\subsection*{\small b)}
 \begin{axdef}
-	sum\_elements\_l: ?
+	sum\_elements\textsubscript{L}: SeqList \fun \nat
 \where
-sum\_elements\_l(nil) = 0 \\
-\forall s: \iseq \nat; l: SeqList \\
-	\t1 sum\_elements\_l(join(s, l)) = (\Sigma\ ran(s)) + sum\_elements\_l(l)
+sum\_elements\textsubscript{L}(nil) = 0 \\
+\forall s: \iseq \nat; l: SeqList @ \\
+	\t1 sum\_elements\textsubscript{L}(join(s, l)) = (\Sigma\ ran(s)) + sum\_elements\textsubscript{L}(l)
 \end{axdef}
 
+\subsection*{\small c)}
 \begin{axdef}
-	transform: SeqList -> \seq(\iseq \nat)
+	transform: SeqList \fun \seq(\iseq \nat)
 \where
 	transform(nil) = \langle \rangle \\ 
-\forall s: \iseq \nat; l: SeqList \\
-	\t1 transformer(join(s, l)) = \langle s, transform(l) \rangle \filter \{ \langle \rangle \}
+\forall s: \iseq \nat; l: SeqList @ \\
+	\t1 transformer(join(s, l)) = \langle s \rangle \cat transform(l)
 \end{axdef}
 
+
+\subsection*{\small d)}
 \begin{axdef}
-	sum\_elements\_s: \seq(\iseq \nat)
+	sum\_elements\textsubscript{S}: \seq(\iseq \nat) \fun \nat
 \where
-	sum\_elements\_s(\langle \rangle) = 0 \\
-\forall s1: \iseq \nat; s2: \seq \\
-	\t1 sum\_elements\_s(\langle s1 \rangle \cat s2) = (\Sigma\ ran(s1)) + sum\_elements\_s(s2)
+sum\_elements\textsubscript{S}(\langle \rangle) = 0 \\
+\forall x: \iseq \nat; s: \seq(\iseq \nat) @ \\
+	\t1 sum\_elements\textsubscript{S}(\langle x \rangle \cat s) = (\Sigma\ ran(x)) + sum\_elements\textsubscript{S}(s)
 \end{axdef}
 
-
+\subsection*{\small e)}
 \begin{argue} 
-sum\_elements\_s(transform(nil)) \vspace{0.1cm}  \\
-= sum\_elements\_s(\langle \rangle) & transform \\
-= 0 & sum\_elements\_s \\ 
-= sum\_elements\_l(nil) & sum\_elements\_l
+sum\_elements\textsubscript{S}(transform(nil)) \vspace{0.1cm}  \\
+= sum\_elements\textsubscript{S}(\langle \rangle) & transform \\
+= 0 & sum\_elements\textsubscript{S} \\ 
+= sum\_elements\textsubscript{L}(nil) & sum\_elements\textsubscript{L}
 \end{argue}
 
 \begin{argue} 
-sum\_elements\_s(transform(join(s, l))) \vspace{0.1cm}  \\
-= sum\_elements\_s(s) + sum\_elements\_s(l) & . \\
-= ... & . \\
-= ... & . \\
-= ... & . \\
-= sum\_elements\_l(join(s, l)) & sum\_elements\_l
+sum\_elements\textsubscript{S}(transform(join(s, l))) \vspace{0.1cm}  \\
+= sum\_elements\textsubscript{S}(\langle s \rangle \cat transform(l)) & transform \\
+= sum\_elements\textsubscript{S}(\langle s \rangle) + sum\_elements\textsubscript{S}(transform(l)) & distributivity \\
+= (\Sigma\ ran(s) + sum\_elements\textsubscript{S}(\langle \rangle)) + sum\_elements\textsubscript{S}(transform(l)) &  sum\_elements\textsubscript{S} \\
+= (\Sigma\ ran(s) + 0) + sum\_elements\textsubscript{S}(transform(l))  & sum\_elements\textsubscript{S}\\
+= (\Sigma\ ran(s)) + sum\_elements\textsubscript{S}(transform(l)) & addition \\
+= (\Sigma\ ran(s)) + sum\_elements\textsubscript{L}(l) & inductive assumption \\
+= sum\_elements\textsubscript{L}(join(s, l)) & sum\_elements\textsubscript{L}
 \end{argue}
-
 
 \end{document}
