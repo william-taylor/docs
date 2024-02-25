@@ -198,34 +198,35 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \where
 	\forall area: (\ran zoo) @ \forall pair: (\dom(area) \cross \dom(area)) @ pair \in compatible \\
 	\forall animal: Animal @ \# \{ area: ran(zoo) | animal \inbag area \} \leq 1 \\
-	\forall area: (\ran zoo) @ \# \bigcap  \{ animal: \dom possible\_foods | animal \inbag area @ possible\_foods(animal) \} \geq 1
+	\forall area: (\ran zoo) | area \neq \lbag \rbag @ \bigcap  \{ animal: \dom(area) @ possible\_foods(animal) \} \neq \emptyset
 \end{axdef}
 
 
 % Question 7
 \section*{Q7}
 
-\begin{axdef}
+\begin{axdef} 
 	removeAnimal: Area \cross Animal \pfun Area
 \where
-	\forall a: Area, x: Animal @ \\
-		\t1 removeAnimal(a, x) = a \uminus x
+	removeAnimal = \lambda a: Area; x: Animal \mid x \inbag a \spot a \uminus \lbag x \rbag \\
 \end{axdef}
 
 
-\begin{axdef} %add constraints
+\begin{axdef} 
 	addAnimal: Area \cross Animal \pfun Area
 \where
-	\forall a: Area, x: Animal @ \\
-		\t1 addAnimal(a, x) = a \uplus x
+	\forall a: Area; x: Animal \mid \\
+		\t1 \{ x \} \cross \dom(a) \subseteq compatible \land \bigcap possible\_foods\ \limg \{ x \} \cup dom(a) \rimg \neq \emptyset \spot  \\
+		\t2 addAnimal(a, x) = a \uplus \lbag x \rbag
 \end{axdef}
 
 	
-\begin{axdef} %add constraints
+\begin{axdef} %use lambda must be in a1 and not in a2, 
 	moveAnimal: Area \cross Area \cross Animal \pfun Area \cross Area
 \where
-\forall a1, a2: Area, x: Animal @ \\
-	\t1 moveAnimal(a1, a2, x) = \\ \t2 (removeAnimal(a1, x), addAnimal(a2, x))
+\forall a1, a2: Area; x: Animal \mid \\ 
+	\t1 (a1, x) \in \dom(removeAnimal) \land (a2, x) \in \dom(addAnimal) \land a1 \bcount x = 1 \spot \\
+	\t2 moveAnimal(a1, a2, x) = (removeAnimal(a1, x), addAnimal(a2, x))
 \end{axdef}
 
 % Question 8
@@ -235,7 +236,8 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 	present: Colour \cross MixedColour \fun YesNo \\
 \where
 \forall c1, c2: Colour @ \\
-	\t1 (present(c1, base\ c2) = Yes) \iff (c1 = c2) \\
+	\t1 (present(c1, base\ c2) = yes) \iff (c1 = c2) \\
+	\t1 (present(c1, base\ c2) = no) \iff (c1 \neq c2) \\
 \forall c: Colour; m1, m2: MixedColour @ \\
 	\t1 present(c, mix(m1, m2)) = present(c, m1)\ Or\ present(c, m2) \\
 \end{axdef}
@@ -256,58 +258,70 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \hspace{-0.8cm} present(c1, addcolour(c1, base\ c2)) \vspace{0.1cm}  \\
 = present(c1, mix(base\ c1, base\ c2)) & addcolour \\
 = present(c1, base\ c1)\ Or\ present(c1, base\ c2) & present \\
-= Yes\ Or\ No & present \\
-= Yes & Or \\
+= yes\ Or\ No & present \\
+= yes & Or \\
 \end{argue}
 
 \begin{argue} 
 \hspace{-0.8cm} present(c, addcolour(c, mix(m1, m2))) \vspace{0.1cm}  \\
 = present(c, mix(base\ c, mix(m1, m2))) & addcolour \\
 = present(c, base\ c)\ Or\ present(c, mix(m1, m2)) & present \\
-= Yes\ Or\ present(c, mix(m1, m2)) & present \\
-= Yes & Or   \\
+= yes\ Or\ present(c, mix(m1, m2)) & present \\
+= yes & Or   \\
 \end{argue}
 	
 
 % Question 10
 \section*{Q10}
-...
 
-\begin{zed}
-something
---
-something
-\end{zed}
+\vspace{0.5cm}
+\begin{infrule}
+P(nil) \\
+\forall s: \iseq \nat; l: SeqList \spot P(s) \implies P(join(s, l))
+\derive
+\forall s: \iseq \nat \spot P(s)
+\end{infrule}
 
 \begin{axdef}
-	sum_elementsl: ?
+	sum\_elements\_l: ?
 \where
-	...
+sum\_elements\_l(nil) = 0 \\
+\forall s: \iseq \nat; l: SeqList \\
+	\t1 sum\_elements\_l(join(s, l)) = (\Sigma\ ran(s)) + sum\_elements\_l(l)
 \end{axdef}
 
 \begin{axdef}
-	transform: SeqList -> seq(iseq N)?
+	transform: SeqList -> \seq(\iseq \nat)
 \where
-	...
+	transform(nil) = \langle \rangle \\ 
+\forall s: \iseq \nat; l: SeqList \\
+	\t1 transformer(join(s, l)) = \langle s, transform(l) \rangle \filter \{ \langle \rangle \}
 \end{axdef}
 
 \begin{axdef}
-	sum_elementss: ?
+	sum\_elements\_s: \seq(\iseq \nat)
 \where
-	...
+	sum\_elements\_s(\langle \rangle) = 0 \\
+\forall s1: \iseq \nat; s2: \seq \\
+	\t1 sum\_elements\_s(\langle s1 \rangle \cat s2) = (\Sigma\ ran(s1)) + sum\_elements\_s(s2)
 \end{axdef}
 
 
 \begin{argue} 
-\hspace{-0.8cm} ... \vspace{0.1cm}  \\
-= ... & . \\
+sum\_elements\_s(transform(nil)) \vspace{0.1cm}  \\
+= sum\_elements\_s(\langle \rangle) & transform \\
+= 0 & sum\_elements\_s \\ 
+= sum\_elements\_l(nil) & sum\_elements\_l
 \end{argue}
 
 \begin{argue} 
-\hspace{-0.8cm} ... \vspace{0.1cm}  \\
+sum\_elements\_s(transform(join(s, l))) \vspace{0.1cm}  \\
+= sum\_elements\_s(s) + sum\_elements\_s(l) & . \\
 = ... & . \\
+= ... & . \\
+= ... & . \\
+= sum\_elements\_l(join(s, l)) & sum\_elements\_l
 \end{argue}
 
 
-% End
 \end{document}
