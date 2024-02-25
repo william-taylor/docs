@@ -18,7 +18,7 @@
 % Question 1
 \section*{Q1}
 
-a) $(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
+$(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
 
 \begin{table}[h!]
 \begin{tabular}{|c c c c c|} 
@@ -33,21 +33,21 @@ $p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\
 \end{tabular}
 \end{table}
 
-\hspace{-0.6cm} b) $((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
+\hspace{-0.6cm} $((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
 
 \begin{table}[h!]
-\begin{tabular}{|c c c c c c c c|} 
+\begin{tabular}{|c c c c c c c c c|} 
 \hline 
-$p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \lor (q \lor r)$ & $((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$ \\
+$p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \lor (q \lor r)$ & $((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$ \\
 \hline
-\em{t} & \em{f} & \em{f} & \em{t} & \em{f} & \em{f} & \em{f} & \em{t}  \\ 
-\em{f} & \em{f} & \em{f} & \em{f} & \em{f} & \em{t} & \em{t} & \em{t}  \\
-\em{f} & \em{t} & \em{f} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t}  \\
-\em{t} & \em{t} & \em{f} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t}  \\
-\em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\ 
-\em{f} & \em{f} & \em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t}  \\
-\em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
-\em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
+\em{t} & \em{f} & \em{f} & \em{f} & \em{t} & \em{f} & \em{f} & \em{f} & \em{t}  \\ 
+\em{f} & \em{f} & \em{f} & \em{t} & \em{f} & \em{f} & \em{t} & \em{t} & \em{t}  \\
+\em{f} & \em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t}  \\
+\em{t} & \em{t} & \em{f} & \em{f} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t}  \\
+\em{t} & \em{f} & \em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\ 
+\em{f} & \em{f} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t}  \\
+\em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
+\em{t} & \em{t} & \em{t} & \em{f} & \em{t} & \em{t} & \em{t} & \em{t} & \em{t}  \\
 \hline
 \end{tabular}
 \end{table}
@@ -61,8 +61,8 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 \iff (\lnot (p \land q)) \lor ((p \implies q) \land (q \implies p)) & equivalence-implication \\ 
 \iff (\lnot (p \land q)) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & implication-disjunction \\ 
 \iff (\lnot p \lor \lnot q) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & De Morgan 1 \\
-\iff ((\lnot p \lor \lnot q) \lor (\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p)) & distributivity 2 \\
-\iff ((\lnot p \lor \lnot p) \lor (\lnot q \lor q)) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q)) & associativity of $\lor$ \\
+\iff ((\lnot p \lor \lnot q) \lor ((\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p))) & distributivity 2 \\
+\iff ((\lnot p \lor \lnot p)) \lor ((\lnot q \lor q) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q))) & associativity of $\lor$ \\
 \iff ((\lnot p \lor \lnot p) \lor true) \land (true \lor (\lnot q \lor \lnot q)) & excluded middle \\
 \iff true \land true & true is the zero of $\lor$ \\
 \iff true & true is the unit of $\land$ \\
@@ -99,72 +99,72 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 
 \settree7{
 \starttree{$ (p \land q) \scriptstyle [1] $}
-\jstep{$ p $}{$\scriptstyle ... $}
+\jstep{$ p $}{$\scriptstyle \land-elim1 $}
 }
 
 \settree6{
-\starttree{$ [q] \scriptstyle [2] $}
+\starttree{$ [q] \scriptstyle [3] $}
 }
-
 
 \settree5{
 \starttree{$ (p \land q) \scriptstyle [1] $}
-\jstep{$ q $}{$\scriptstyle ... $}
+\jstep{$ q $}{$\scriptstyle  \land-elim2 $}
 }
 
 \settree4{
-\starttree{$ [p] \scriptstyle [3] $}
+\starttree{$ [p] \scriptstyle [2] $}
 }
 
 \settree3{
-\jointrees{4}{5}
-\jstep{$q \land p$}{$\scriptstyle \land elim1$}
+\jointrees{5}{4}
+\jstep{$q \land p$}{$\scriptstyle \land-intro$}
 \jstep{$q$}{$\scriptstyle \land elim1$}
-\jstep{$p \implies q$}{$\scriptstyle \implies intro$}
+\jstep{$p \implies q$}{$\scriptstyle \implies-intro [2]$}
 }
 \settree2{
-\jointrees{6}{7}
-\step{$p \land q$}
-\jstep{$p$}{$\scriptstyle \land elim2$}
-\jstep{$q \implies p$}{$\scriptstyle \implies intro$}
+\jointrees{7}{6}
+\jstep{$p \land q$}{$\scriptstyle \land-intro$}
+\jstep{$p$}{$\scriptstyle \land elim1$}
+\jstep{$q \implies p$}{$\scriptstyle \implies-intro [3]$}
 }
 \settree1{
-\jointrees{2}{3}
-\jstep{$p \iff q$}{$\scriptstyle \iff intro$}
-\jstep{$(p \land q) \implies (p \iff q)$}{$\scriptstyle \implies intro$}
+\jointrees{3}{2}
+\jstep{$p \iff q$}{$\scriptstyle \iff-intro$}
+\jstep{$(p \land q) \implies (p \iff q)$}{$\scriptstyle \implies-intro [1]$}
 }
 \bigskip
+\hspace{-0.6cm} 
 \ligne{\hfill\box1\hfill}
 \vspace{1cm} 
 
 % B
 \settree4{
-\starttree{$ [r] \scriptstyle [1] $}
-\jstep{$ (q \lor r) $}{$\scriptstyle \lor intro2 $}
-\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor intro2 $}
+\starttree{$ [r] \scriptstyle [2] $}
+\jstep{$ (q \lor r) $}{$\scriptstyle \lor-intro2 $}
+\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor-intro2 $}
 }
 
 \settree3{ 
-\starttree{$ [\lnot p \land \lnot q] \scriptstyle [1]$}
-\jstep{$ \lnot p $}{$\scriptstyle \and elim1 $}
-\jstep{$ \lnot p \lor q $}{$\scriptstyle \lor intro1$}
-\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor intro2$}
+\starttree{$ [\lnot p \land \lnot q] \scriptstyle [2]$}
+\jstep{$ \lnot p $}{$\scriptstyle \land-elim1 $}
+\jstep{$ \lnot p \lor q $}{$\scriptstyle \lor-intro1$}
+\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor-intro1$}
 }
 
 \settree2{
 \starttree{$ [p \lor q \implies r] \scriptstyle [1]$}
-\jstep{$ \lnot ( p \lor q) \lor r$}{$\scriptstyle $}
-\jstep{$ (\lnot p \land \lnot q) \lor r $}{$\scriptstyle $}
+\jstep{$ \lnot ( p \lor q) \lor r$}{$\scriptstyle \implies equivalence $}
+\jstep{$ (\lnot p \land \lnot q) \lor r $}{$\scriptstyle de\ Morgan1 $}
 }
 
 \settree1{
-\tjointrees{2}{3}{4}
-\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor elim [2]$}
-\jstep{$((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$}{$\scriptstyle \implies intro [1]$}
+\ljointrees{2}{3}{4}
+\jstep{$ \lnot p \lor (q \lor r) $}{$\scriptstyle \lor-elim [2]$}
+\jstep{$((p \lor q) \implies r) \implies (\lnot p \lor (q \lor r))$}{$\scriptstyle \implies-intro [1]$}
 }
 \bigskip
+\hspace{-1.2cm} 
 \ligne{\hfill\box1\hfill}
-\vspace{1cm} 
 
 % Question 4
 \section*{Q4}
@@ -232,24 +232,82 @@ $p$ & $q$ & $r$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ & $\lnot p \
 \section*{Q8}
 
 \begin{axdef}
-	present: Colour \cross MixedColour \fun YesNo
+	present: Colour \cross MixedColour \fun YesNo \\
+\where
+\forall c1, c2: Colour @ \\
+	\t1 (present(c1, base\ c2) = Yes) \iff (c1 = c2) \\
+\forall c: Colour; m1, m2: MixedColour @ \\
+	\t1 present(c, mix(m1, m2)) = present(c, m1)\ Or\ present(c, m2) \\
+\end{axdef}
+
+\begin{axdef}
+	addcolour: Colour \cross MixedColour \fun MixedColour \\
+\where
+	\forall c1, c2: Color \\
+		\t1 addcolour(c1, base\ c2) = mix(base\ c1, base\ c2) \\
+	\forall c: Colour; m1, m2: MixedColour \\
+		\t1 addcolour(c, mix(m1, m2)) = mix(base\ c, mix(m1, m2)) \\
+ \end{axdef}
+
+% Question 9
+\section*{Q9}
+
+\begin{argue} 
+\hspace{-0.8cm} present(c1, addcolour(c1, base\ c2)) \vspace{0.1cm}  \\
+= present(c1, mix(base\ c1, base\ c2)) & addcolour \\
+= present(c1, base\ c1)\ Or\ present(c1, base\ c2) & present \\
+= Yes\ Or\ No & present \\
+= Yes & Or \\
+\end{argue}
+
+\begin{argue} 
+\hspace{-0.8cm} present(c, addcolour(c, mix(m1, m2))) \vspace{0.1cm}  \\
+= present(c, mix(base\ c, mix(m1, m2))) & addcolour \\
+= present(c, base\ c)\ Or\ present(c, mix(m1, m2)) & present \\
+= Yes\ Or\ present(c, mix(m1, m2)) & present \\
+= Yes & Or   \\
+\end{argue}
+	
+
+% Question 10
+\section*{Q10}
+...
+
+\begin{zed}
+something
+--
+something
+\end{zed}
+
+\begin{axdef}
+	sum_elementsl: ?
 \where
 	...
 \end{axdef}
 
 \begin{axdef}
-	addcolour: Colour \cross MixedColour \fun MixedColour
+	transform: SeqList -> seq(iseq N)?
 \where
 	...
 \end{axdef}
 
-% Question 9
-\section*{Q9}
-...
+\begin{axdef}
+	sum_elementss: ?
+\where
+	...
+\end{axdef}
 
-% Question 10
-\section*{Q10}
-...
+
+\begin{argue} 
+\hspace{-0.8cm} ... \vspace{0.1cm}  \\
+= ... & . \\
+\end{argue}
+
+\begin{argue} 
+\hspace{-0.8cm} ... \vspace{0.1cm}  \\
+= ... & . \\
+\end{argue}
+
 
 % End
 \end{document}
