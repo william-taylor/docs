@@ -18,7 +18,7 @@
 \section*{Q1}
 
 \subsection*{\small a)}
-$(p \land q) \implies (p \iff q)$ is a \textbf{tautology}.
+$(p \land q) \implies (p \iff q)$ is a tautology.
 
 \begin{table}[h!]
 \begin{tabular}{|c c c c c|} 
@@ -34,7 +34,7 @@ $p$ & $q$ & $p \land q$ & $p \iff q$ & $(p \land q) \implies (p \iff q)$ \\
 \end{table}
 
 \subsection*{\small b)}
-$((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a \textbf{tautology}.
+$((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r ))$ is a tautology.
 
 \begin{table}[h!]
 \begin{tabular}{|c c c c c c c c c|} 
@@ -60,11 +60,11 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \begin{argue} 
 (p \land q) \implies (p \iff q) \vspace{0.2cm}  \\
 \iff (\lnot (p \land q)) \lor (p \iff q) & implication-disjunction \\ 
-\iff (\lnot (p \land q)) \lor ((p \implies q) \land (q \implies p)) & equivalence-implication \\ 
-\iff (\lnot (p \land q)) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & implication-disjunction \\ 
-\iff (\lnot p \lor \lnot q) \lor ((\lnot p \lor q) \land (\lnot q \lor p)) & De Morgan 1 \\
-\iff ((\lnot p \lor \lnot q) \lor ((\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p))) & distributivity 2 \\
-\iff ((\lnot p \lor \lnot p)) \lor ((\lnot q \lor q) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q))) & associativity of $\lor$ \\
+\iff (\lnot (p \land q)) \lor (p \implies q) \land (q \implies p) & equivalence-implication \\ 
+\iff (\lnot (p \land q)) \lor (\lnot p \lor q) \land (\lnot q \lor p) & implication-disjunction \\ 
+\iff (\lnot p \lor \lnot q) \lor (\lnot p \lor q) \land (\lnot q \lor p) & De Morgan 1 \\
+\iff ((\lnot p \lor \lnot q) \lor (\lnot p \lor q)) \land ((\lnot p \lor \lnot q) \lor (\lnot q \lor p)) & distributivity 2 \\
+\iff ((\lnot p \lor \lnot p) \lor (\lnot q \lor q)) \land ((\lnot p \lor p) \lor (\lnot q \lor \lnot q)) & associativity of $\lor$ \\
 \iff ((\lnot p \lor \lnot p) \lor true) \land (true \lor (\lnot q \lor \lnot q)) & excluded middle \\
 \iff true \land true & true is the zero of $\lor$ \\
 \iff true & true is the unit of $\land$ \\
@@ -75,7 +75,7 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 ((p \lor q) \implies r) \implies ( \lnot p \lor ( q \lor r )) \vspace{0.2cm} \\
 \iff (\lnot ((p \lor q) \implies r)) \lor ( \lnot p \lor ( q \lor r )) & implication-disjunction  \\
 \iff (\lnot (\lnot (p \lor q) \lor r)) \lor ( \lnot p \lor ( q \lor r )) & implication-disjunction  \\
-\iff ((\lnot \lnot (p \lor q) \land \lnot r)) \lor ( \lnot p \lor ( q \lor r )) & De Morgan 2 \\
+\iff ((\lnot \lnot (p \lor q)) \land \lnot r) \lor ( \lnot p \lor ( q \lor r )) & De Morgan 2 \\
 \iff ((p \lor q) \land \lnot r) \lor ( \lnot p \lor ( q \lor r )) & negation is an involution \\
 \iff (\lnot r \land (p \lor q)) \lor ( \lnot p \lor ( q \lor r ))  & commutativity of $\land$  \\
 \iff (\lnot r \land p) \lor (\lnot r \land q) \lor ( \lnot p \lor ( q \lor r )) & distributivity 1 \\
@@ -121,13 +121,13 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 \settree3{
 \jointrees{5}{4}
 \jstep{$q \land p$}{$\scriptstyle \land-intro$}
-\jstep{$q$}{$\scriptstyle \land elim1$}
+\jstep{$q$}{$\scriptstyle \land-elim1$}
 \jstep{$p \implies q$}{$\scriptstyle \implies-intro [2]$}
 }
 \settree2{
 \jointrees{7}{6}
 \jstep{$p \land q$}{$\scriptstyle \land-intro$}
-\jstep{$p$}{$\scriptstyle \land elim1$}
+\jstep{$p$}{$\scriptstyle \land-elim1$}
 \jstep{$q \implies p$}{$\scriptstyle \implies-intro [3]$}
 }
 \settree1{
@@ -156,8 +156,8 @@ $p$ & $q$ & $r$ & $\lnot p$ & $p \lor q$ & $q \lor r$ & $(p \lor q) \implies r$ 
 
 \settree2{
 \starttree{$ [p \lor q \implies r] \scriptstyle [1]$}
-\jstep{$ \lnot ( p \lor q) \lor r$}{$\scriptstyle \implies equivalence $}
-\jstep{$ (\lnot p \land \lnot q) \lor r $}{$\scriptstyle de\ Morgan1 $}
+\jstep{$ \lnot ( p \lor q) \lor r$}{$\scriptstyle implication-disjunction $}
+\jstep{$ (\lnot p \land \lnot q) \lor r $}{$\scriptstyle De\ Morgan\ 1 $}
 }
 
 \settree1{
@@ -277,9 +277,8 @@ present(c1, addcolour(c1, base\ c2)) \vspace{0.1cm}  \\
 \begin{argue} 
 present(c, addcolour(c, mix(m1, m2))) \vspace{0.1cm}  \\
 = present(c, mix(base\ c, mix(m1, m2))) & addcolour \\
-= present(c, mix(base\ c, m1))\ Or\ present(c, mix(base\ c, m2)) & distributivity \\
-= present(c, addcolour(c, m1))\ Or\ present(c, addcolour(c, m2)) & addcolour \\ 
-= yes\ Or\ yes & $P(c, m1) \land P(c, m2)$ \\
+= present(c, base\ c)\ Or\ present(c, mix(m1, m2)) & present \\
+= yes\ Or\ present(c, mix(m1, m2)) & present \\
 = yes & Or \\
 \end{argue}
 	
@@ -310,7 +309,7 @@ sum\_elements\textsubscript{L}(nil) = 0 \\
 \where
 	transform(nil) = \langle \rangle \\ 
 \forall s: \iseq \nat; l: SeqList @ \\
-	\t1 transformer(join(s, l)) = \langle s \rangle \cat transform(l)
+	\t1 transform(join(s, l)) = \langle s \rangle \cat transform(l)
 \end{axdef}
 
 
