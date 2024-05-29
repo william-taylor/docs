@@ -27,6 +27,40 @@
   tabsize=3,
   xleftmargin =0em
 }
+\definecolor{delim}{RGB}{20,105,176}
+\definecolor{numb}{RGB}{106, 109, 32}
+\definecolor{string}{rgb}{0.64,0.08,0.08}
+
+\lstdefinelanguage{json}{
+    numbers=none,
+    numberstyle=\small,
+    frame=none,
+    rulecolor=\color{black},
+    showspaces=false,
+    showtabs=false,
+    breaklines=false,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{gray}\hookrightarrow\space}},
+    breakatwhitespace=true,
+    basicstyle=\ttfamily\small,
+    upquote=true,
+    morestring=[b]",
+    stringstyle=\color{string},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
 \usepackage{prooftree}
 
 % Metadata
@@ -48,7 +82,14 @@
 \end{schema}
 
 \subsection*{\small b)}
-...
+
+To validate the schema is in the third normal form I need to prove it meets both the first and second normal form first.
+\newline
+\newline
+The provided schema does meet the first normal form as I have eliminated repeating gropus by X.
+\newline
+\newline
+It also meets the second form as each non primary key attribute relates to relation.
 
 \subsection*{\small c)}
 
@@ -57,31 +98,33 @@ C1
 \begin{zed}
 \forall i, j: 1 \upto hwm @ (i, j)
 \end{zed}
-
-\hspace{-0.6cm} 
+\newline
 C2
 
 \begin{zed}
 \forall i, j: 1 \upto hwm @ (i, j)
 \end{zed}
-
-\hspace{-0.6cm} 
+\newline
 C3
 
 \begin{zed}
-\forall i, j: 1 \upto hwm @ (i, j)
+\forall i, j: 1 \upto hwm @ (i, j) \\
 \end{zed}
-
-\hspace{-0.6cm} 
 C4
 
 \begin{zed}
 \forall i, j: 1 \upto hwm @ (i, j)
 \end{zed}
 
-
 \subsection*{\small d)}
-...
+
+Storage
+\newline
+Indices (clustered and nonclustered)
+\newline
+Audit info (do we need to create triggers to capture timestamps)
+\newline
+Orthagonal design (slit active from non active users of the app)
 
 \section*{Q2}
 
@@ -130,8 +173,7 @@ Join(Table)
 
 \subsection*{\small a)}
 
-
-\begin{lstlisting}
+\begin{lstlisting}[language=sql]
 CREATE TABLE Persons (
     PersonID int,
     LastName varchar(255),
@@ -144,7 +186,7 @@ CREATE TABLE Persons (
 
 \subsection*{\small b)}
 
-\begin{lstlisting}
+\begin{lstlisting}[language=sql]
 ALTER TABLE Persons ADD CONSTRAINT CHK_PersonAge CHECK (
     Age>=18 AND City='Sandnes'
 );
@@ -152,7 +194,7 @@ ALTER TABLE Persons ADD CONSTRAINT CHK_PersonAge CHECK (
 
 \subsection*{\small c)}
 
-\begin{lstlisting}
+\begin{lstlisting}[language=sql]
 SELECT 
     x,
     y,
@@ -169,12 +211,42 @@ ORDER BY
 \section*{Q4}
 
 \subsection*{\small a)}
-...
+
+Non Relational Design
 
 \subsection*{\small b)}
-...
+
+% Query 1 % 
+\hspace{0cm}1.
+\begin{lstlisting}[language=json]
+{
+    "query": 100
+} 
+\end{lstlisting} 
+% Query 2 % 
+\hspace{0cm}2.
+\begin{lstlisting}[language=json]
+{                   
+    "query": 100
+}
+\end{lstlisting}
+% Query 3 % 
+\hspace{0cm}3. 
+\begin{lstlisting}[language=json]
+{
+    "query": 100
+}
+\end{lstlisting}
+% Query 4 % 
+\hspace{0cm}4. 
+\begin{lstlisting}[language=json]
+{
+    "query": 100
+}
+\end{lstlisting}
 
 \subsection*{\small c)}
-...
+
+Comparitive analysis
 
 \end{document}
