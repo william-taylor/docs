@@ -75,11 +75,163 @@
 
 \subsection*{\small a)}
 
-\begin{schema}{Title}
-	\underline{name}: NAME \\
-	date: DATE \\
-	result: REPORT
+
+\textbf{Personal Information}
+\newline \newline Assumptions:
+\begin{itemize}
+  \item The requirement to capture gender refers to biological sex, if it refers to gender identity the schema would need to change to support a greater range of values potentially via a lookup table.
+\end{itemize}
+\begin{schema}{User}
+	\underline{userId}: UserId \\
+	firstName: NameType \\
+	lastName: NameType \\
+    dateOfBirth: DateType \\
+    gender: GenderType \\
+    height: HeightType \\ 
 \end{schema}
+\begin{zed}
+\textcolor{red}{PK}(User) = \{ userId \} \\
+\end{zed}
+
+\vspace{0.2cm}
+\hspace{-0.5cm}\textbf{Health Status Data}
+\newline \newline Assumptions:
+\begin{itemize}
+  \item ... 
+\end{itemize}
+
+\begin{schema}{HealthReading}
+	\underline{readingId}: ReadingId \\
+    takenAt: DateTimeType \\
+    glucoseLevel: GlucoseType \\
+    bloodPressure: PressureType \\ 
+    weight: WeightType \\
+    userId: UserId \\
+\end{schema}
+\begin{zed}
+\textcolor{red}{PK}(HealthReading) = { readingId } \\
+\end{zed}
+    
+\vspace{0.2cm}
+\hspace{-0.5cm}\textbf{Diet Data}
+\newline \newline Assumptions:
+\begin{itemize}
+  \item ...
+\end{itemize}
+
+\begin{schema}{Diet}
+    \underline{userId}: UserId \\
+    \underline{intakeDate}: DateType \\
+\end{schema}
+
+\begin{schema}{Meal}
+	\underline{mealId}: MealId \\
+    mealType: MealType \\
+    mealSize: SizeType \\
+    dietId: DietId \\
+\end{schema}
+
+\begin{schema}{Snack}
+	\underline{snackId}: SnackId \\
+    snackName: SnackNameType \\
+    estimatedCalories: CaloriesType \\
+    dietId: DietId \\
+\end{schema}
+
+\begin{zed}
+\textcolor{red}{PK}(Diet) = { dietId } \\
+\textcolor{red}{PK}(Meal) = { mealId } \\
+\textcolor{red}{PK}(Snack) = { snackId } \\
+\end{zed}
+    
+\vspace{0.2cm}
+\hspace{-0.5cm}\textbf{Gym Performance Data}
+\newline \newline Assumptions:
+\begin{itemize}
+  \item ...
+\end{itemize}
+
+\begin{schema}{Exercise}
+	\underline{exerciseId}: ExerciseId \\
+    occurredAt: DateTimeType \\
+    repetitionsPerSet: \nat \\
+    numberOfSets: \nat \\
+    weightType: WeightType \\
+    weightLevel: WeightLevelType \\
+    userId: UserId \\
+\end{schema}
+\begin{zed}
+\textcolor{red}{PK}(Exercise) = { exerciseId } \\
+\end{zed}
+
+\vspace{0.2cm}
+\hspace{-0.5cm}\textbf{Movement Data}
+\newline \newline Assumptions:
+\begin{itemize}
+  \item ...
+\end{itemize}
+
+\begin{schema}{MovementSnapshot}
+	\underline{snapshotId}: SnapshotId \\
+    interval: IntervalType \\
+    takenAt: DateTimeType \\
+    userId: UserId \\
+\end{schema}
+
+\begin{schema}{MovementData}
+    \underline{snapshotId} snapshotId: SnapshotId \\
+    \underline{movementPace}: PaceType \\
+    calories: CaloriesType \\
+    distance: DistanceType \\ 
+    stairs: \nat \\
+    steps: \nat \\
+\end{schema}
+
+\begin{zed}
+\textcolor{red}{PK}(MovementSnapshot) = { snapshotId } \\
+\textcolor{red}{PK}(MovementData) = { dataId } \\
+\end{zed}
+    
+
+\vspace{0.2cm}
+\hspace{-0.5cm}\textbf{Personal Goals}
+\newline \newline Assumptions:
+\begin{itemize}
+  \item ...
+\end{itemize}
+
+\begin{schema}{Goal}
+	\underline{goalId}: GoalId \\
+    goalStart: DateType \\
+    goalEnd: DateType \\ 
+    goalType: GoalType \\
+    goalUnit: GoalUnit \\
+    current: TargetType \\
+    target: TargetType \\ 
+\end{schema}
+
+\begin{schema}{GoalNotification}
+	\underline{notificationId}: NotificationId \\
+    message: MessageType \\
+    status: Status \\
+    goalId: GoalId \\
+\end{schema}
+
+\begin{schema}{GoalEvidence}
+	\underline{evidenceId}: EvidenceId \\
+    weightId: WeightId \\
+    movementId: MovementId \\
+    readingId: ReadingId \\ 
+    goalId: GoalId \\
+\end{schema}
+
+\begin{zed}
+\textcolor{red}{PK}(Goal) = { goalId }  \\
+\textcolor{red}{PK}(GoalNotification) = { notificationId }  \\
+\textcolor{red}{PK}(GoalEvidence) = { evidenceId }  \\
+\end{zed}
+
+\pagebreak 
 
 \subsection*{\small b)}
 
@@ -94,21 +246,16 @@ It also meets the second form as each non primary key attribute relates to relat
 \subsection*{\small c)}
 
 C1
-
 \begin{zed}
 \forall i, j: 1 \upto hwm @ (i, j)
 \end{zed}
-\newline
 C2
-
 \begin{zed}
 \forall i, j: 1 \upto hwm @ (i, j)
 \end{zed}
-\newline
 C3
-
 \begin{zed}
-\forall i, j: 1 \upto hwm @ (i, j) \\
+\forall i, j: 1 \upto hwm @ (i, j) 
 \end{zed}
 C4
 
@@ -126,6 +273,7 @@ Audit info (do we need to create triggers to capture timestamps)
 \newline
 Orthagonal design (slit active from non active users of the app)
 
+\pagebreak 
 \section*{Q2}
 
 \subsection*{\small a)}
@@ -169,6 +317,7 @@ Join(Table)
 \forall t: Table
 \end{zed}
 
+\pagebreak 
 \section*{Q3}
 
 \subsection*{\small a)}
@@ -208,6 +357,7 @@ ORDER BY
     z
 \end{lstlisting}
 
+\pagebreak 
 \section*{Q4}
 
 \subsection*{\small a)}
