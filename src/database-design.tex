@@ -83,6 +83,7 @@
 \end{itemize}
 \begin{schema}{User}
 	\underline{userId}: UserId \\
+    email: EmailType \\
 	firstName: NameType \\
 	lastName: NameType \\
     dateOfBirth: DateType \\
@@ -120,22 +121,23 @@
 \end{itemize}
 
 \begin{schema}{Diet}
-    \underline{userId}: UserId \\
-    \underline{intakeDate}: DateType \\
+    dietId: DietId \\
+    userId: UserId \\
+    date: DateType \\
 \end{schema}
 
 \begin{schema}{Meal}
 	\underline{mealId}: MealId \\
+    dietId: DietId \\
     mealType: MealType \\
     mealSize: SizeType \\
-    dietId: DietId \\
 \end{schema}
 
 \begin{schema}{Snack}
 	\underline{snackId}: SnackId \\
+    dietId: DietId \\
     snackName: SnackNameType \\
     estimatedCalories: CaloriesType \\
-    dietId: DietId \\
 \end{schema}
 
 \begin{zed}
@@ -171,20 +173,22 @@
   \item ...
 \end{itemize}
 
-\begin{schema}{MovementSnapshot}
+\begin{schema}{DailyMovement}
 	\underline{snapshotId}: SnapshotId \\
+    \underline{dailyMovement}: HourlyMovementId \\
     interval: IntervalType \\
-    takenAt: DateTimeType \\
+    date: DateType \\
+    time: TimeType \\
     userId: UserId \\
 \end{schema}
 
-\begin{schema}{MovementData}
-    \underline{snapshotId} snapshotId: SnapshotId \\
-    \underline{movementPace}: PaceType \\
+\begin{schema}{HourlyMovement}
+    \underline{hourlyMovementId}: HourlyMovementId \\
     calories: CaloriesType \\
     distance: DistanceType \\ 
     stairs: \nat \\
     steps: \nat \\
+    pace: PaceType \\
 \end{schema}
 
 \begin{zed}
@@ -197,32 +201,39 @@
 \hspace{-0.5cm}\textbf{Personal Goals}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item ...
+  \item message won't be the only attribute 
 \end{itemize}
 
 \begin{schema}{Goal}
 	\underline{goalId}: GoalId \\
-    goalStart: DateType \\
-    goalEnd: DateType \\ 
-    goalType: GoalType \\
-    goalUnit: GoalUnit \\
-    current: TargetType \\
-    target: TargetType \\ 
+    userId: UserId \\
+    startDate: DateType \\
+    endDate: DateType \\ 
+    targetType: TargetType \\
+    targetUnit: TargetUnit \\
+    targetValue: TargetValue \\ 
 \end{schema}
 
-\begin{schema}{GoalNotification}
-	\underline{notificationId}: NotificationId \\
-    message: MessageType \\
-    status: Status \\
+\begin{schema}{Outcome}
+	\underline{outcomeId}: OutcomeId \\
     goalId: GoalId \\
+    recordedAt: DateTimeType \\
+    status: Status \\
 \end{schema}
 
-\begin{schema}{GoalEvidence}
+\begin{schema}{Message}
+	\underline{messageId}: MessageId \\
+    outcomeId: OutcomeId \\
+    subject: SubjectType \\
+    message: MessageType \\
+\end{schema}
+
+\begin{schema}{Evidence}
 	\underline{evidenceId}: EvidenceId \\
-    weightId: WeightId \\
+    outcomeId: OutcomeId \\
     movementId: MovementId \\
     readingId: ReadingId \\ 
-    goalId: GoalId \\
+    weightId: WeightId \\
 \end{schema}
 
 \begin{zed}
@@ -247,21 +258,36 @@ It also meets the second form as each non primary key attribute relates to relat
 
 C1
 \begin{zed}
-\forall i, j: 1 \upto hwm @ (i, j)
+\forall g: Goal @ \lnot (g.periodEnd < g.periodStart) \\
 \end{zed}
 C2
 \begin{zed}
-\forall i, j: 1 \upto hwm @ (i, j)
+\forall dm: DailyMovement @ \\
+    \t1 dm.calories = sum \\
+    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.calories \} \\
+    \t1 dm.distance = sum \\
+    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.distance \} \\
+    \t1 dm.stairs = sum \\
+    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.stairs \} \\
+    \t1 dm.steps = sum \\
+    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.steps \} \\
 \end{zed}
 C3
 \begin{zed}
-\forall i, j: 1 \upto hwm @ (i, j) 
+\forall d: DateType; u: User @ \\
+    \t1 \#\{ g: Goal | u.userId = g.userId \land g.periodStart \leq d \land g.periodEnd > d \} <= 3 \\
 \end{zed}
 C4
-
 \begin{zed}
-\forall i, j: 1 \upto hwm @ (i, j)
+\forall o: GoalOutcome @ \\ 
+    \t1 o.status \in \{Success, Failure\} \implies (\exists e: GoalEvidence | o.outcomeId = e.outcomeId) \\
 \end{zed}
+Additional Constraints:
+\begin{itemize}
+  \item Diet data should have a constraint on date to make sure dietDate is unique per date and user. 
+  \item Each movement snapshot should have movement data one for each pace type which can be added as a constraint 
+  \item Meal entries should be restricted to one meal type per day 
+\end{itemize}
 
 \subsection*{\small d)}
 
@@ -279,28 +305,47 @@ Orthagonal design (slit active from non active users of the app)
 \subsection*{\small a)}
 
 \begin{zed}
-Join(Table)
+    A == Restrict\small{\{userId = currentUserId \land takenAt.year = 2023 \land takenAt.month = February \}}(MovementSnapshot) \\
+    B == Restrict\small{\{md.distance >= 1 \land movementPace \in \{ Walked, Ran \}\}} \\
+    C == Project\small{\{takenAt.day\}}(Join(A, B)) \\
 \end{zed}
 
 \begin{zed}
-\forall t: Table
+\{ ms: MovementSnapshot; md: MovementData | \\
+    \t1 ms.snapshotId = md.snapshotId \land ms.userId = currentUserId \\
+    \t1 ms.takenAt.year = 2023 \land ms.takenAt.month = February \\
+    \t1 md.distance >= 1 \land md.movementPace \in \{ Walked, Ran \} @ \\
+        \t2 ( day == ms.takenAt.day ) \}
 \end{zed}
-    
 
 \subsection*{\small b)}
 
+Need to join to get status.
+
 \begin{zed}
-Join(Table)
+A = Restrict\small{userId = currentUserId}(Goal) \\
+B = Restrict\small{goalStart < Feb2023}(A) \\
+C = Restrict\small{goalEnd >= Feb2023}(B)
 \end{zed}
 
 \begin{zed}
-\forall t: Table
+\{ g: Goal | \\
+    \t1 g.userId = currentUserId \land \\
+    \t1 g.goalStart < Feb2023 \land \\
+    \t1 g.goalEnd >= Feb2023 \\
+\}
 \end{zed}
 
 \subsection*{\small c)}
 
 \begin{zed}
-Join(Table)
+A == Restrict\small{userId = currentUserId \land goal.goalEnd.year = 2023 \land goal.status = Success}(Goal) \\
+B == Project\small{month, goalId}(A) \\
+C == B GroupBy(count(goalId) as goalsMet) \\
+D == C GroupBy(max(goalsMet) as maxGoalsMet) \\
+E == Join(C, D) \\
+F == Restrict\small{goalsMet = maxGoalsMet}(E) \\ 
+G == Project\small{month}(F)
 \end{zed}
 
 \begin{zed}
@@ -310,7 +355,10 @@ Join(Table)
 \subsection*{\small d)}
 
 \begin{zed}
-Join(Table)
+A == Restrict{userId = currentUserId \land interval = Daily \land takenAt.year = 2023}(MovementSnapshot) \\
+B == Join(A, MovementData) \\ 
+C == Project{takenAt.month, calories}(B) \\ 
+D == C GroupBy(avg(calories) as averageDailyCalories) \\
 \end{zed}
 
 \begin{zed}
@@ -364,6 +412,8 @@ ORDER BY
 
 Non Relational Design
 
+https://www.mongodb.com/blog/post/building-with-patterns-a-summary
+
 \subsection*{\small b)}
 
 % Query 1 % 
@@ -398,5 +448,9 @@ Non Relational Design
 \subsection*{\small c)}
 
 Comparitive analysis
+
+1) Data Model
+2) Scalability
+3) Query Language
 
 \end{document}
