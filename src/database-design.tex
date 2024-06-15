@@ -75,15 +75,15 @@
 
 \subsection*{\small a)}
 
-
 \textbf{Personal Information}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item The requirement to capture gender refers to biological sex, if it refers to gender identity the schema would need to change to support a greater range of values potentially via a lookup table.
+  \item That height will be stored as centimeters and there isn't a need support capturing height in either metric or/and imperial units.
+  \item That gender doesn't need to support a broad range of values. If it did it would make sense to create a new $Gender$ relation that the $User$ relation can have a foreign key to. 
 \end{itemize}
 \begin{schema}{User}
-	\underline{userId}: UserId \\
-    email: EmailType \\
+	\underline{userId}: UserIdType \\
+    emailAddress: EmailAddressType \\
 	firstName: NameType \\
 	lastName: NameType \\
     dateOfBirth: DateType \\
@@ -98,31 +98,41 @@
 \hspace{-0.5cm}\textbf{Health Status Data}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item ... 
+  \item That we don't need to track readings submitted together. If it was, introducing a $Submission$ relation and a new foreign key attribute to $HealthReading$ could enable that.
 \end{itemize}
 
+\begin{schema}{HealthMetric}
+\underline{healthMetricId}: MetricIdType \\
+metricName: MetricNameType \\ 
+metricUnit: MetricUnitType \\ 
+\end{schema}
+
 \begin{schema}{HealthReading}
-	\underline{readingId}: ReadingId \\
-    takenAt: DateTimeType \\
-    glucoseLevel: GlucoseType \\
-    bloodPressure: PressureType \\ 
-    weight: WeightType \\
-    userId: UserId \\
+	\underline{healthReadingId}: ReadingIdType \\
+    submissionId: SubmissionId \\
+    metricId: MetricIdType \\
+    value: MetricValueType \\
+    readAt: DateTimeType \\
+    userId: UserIdType \\
 \end{schema}
 \begin{zed}
-\textcolor{red}{PK}(HealthReading) = { readingId } \\
+\textcolor{red}{PK}(HealthMetric) = \{ healthMetricId \} \\
+\textcolor{red}{PK}(HealthReading) = \{ healthReadingId \} \\ 
+\newline \\ 
+(HealthReading, HealthMetric) \mapsto \{ metricId \mapsto healthMetricId \} \in \textcolor{red}{FK} \\
+(HealthReading, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
 \end{zed}
     
-\vspace{0.2cm}
 \hspace{-0.5cm}\textbf{Diet Data}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item ...
+  \item That meals, food and drink is meant to capture diet information at a very high level and there is no need to store a broad defined list of food/drink types/names. 
+  \item That calories should only be stored for Food/Drinks with drinks stored by type and glasses consumed and food stored by name and quantity.
 \end{itemize}
 
 \begin{schema}{Diet}
-    dietId: DietId \\
-    userId: UserId \\
+    \underline{dietId}: DietId \\
+    userId: UserIdType \\
     date: DateType \\
 \end{schema}
 
@@ -133,53 +143,75 @@
     mealSize: SizeType \\
 \end{schema}
 
-\begin{schema}{Snack}
-	\underline{snackId}: SnackId \\
+\begin{schema}{Food}
+	\underline{foodId}: FoodId \\
     dietId: DietId \\
-    snackName: SnackNameType \\
-    estimatedCalories: CaloriesType \\
+    foodName: FoodNameType \\
+    calories: CaloriesType \\
+    quantity: \nat_1 \\
+\end{schema}
+
+\begin{schema}{Drink}
+	\underline{drinkId}: DrinkId \\
+    dietId: DietId \\
+    drinkType: DrinkType \\
+    calories: CaloriesType \\
+    glasses: \nat_1 \\
 \end{schema}
 
 \begin{zed}
-\textcolor{red}{PK}(Diet) = { dietId } \\
-\textcolor{red}{PK}(Meal) = { mealId } \\
-\textcolor{red}{PK}(Snack) = { snackId } \\
+\textcolor{red}{PK}(Diet) = \{ dietId \} \\
+\textcolor{red}{PK}(Meal) = \{ mealId \} \\
+\textcolor{red}{PK}(Food) = \{ foodId \} \\
+\textcolor{red}{PK}(Drink) = \{ drinkId \} \\
+\newline \\ 
+(Diet, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
+(Meal, Diet) \mapsto \{ dietId \mapsto dietId \} \in \textcolor{red}{FK} \\
+(Food, Diet) \mapsto \{ dietId \mapsto dietId \} \in \textcolor{red}{FK} \\
+(Drink, Diet) \mapsto \{ dietId \mapsto dietId \} \in \textcolor{red}{FK} \\
 \end{zed}
     
-\vspace{0.2cm}
 \hspace{-0.5cm}\textbf{Gym Performance Data}
-\newline \newline Assumptions:
-\begin{itemize}
-  \item ...
-\end{itemize}
 
 \begin{schema}{Exercise}
-	\underline{exerciseId}: ExerciseId \\
+	\underline{exerciseId}: ExerciseIdType \\
+	exerciseName: ExerciseNameType
+\end{schema}
+
+\begin{schema}{Workout}
+	\underline{workoutId}: WorkoutIdType \\
     occurredAt: DateTimeType \\
-    repetitionsPerSet: \nat \\
-    numberOfSets: \nat \\
-    weightType: WeightType \\
+    userId: UserIdType \\
+\end{schema}
+
+\begin{schema}{WorkoutSession}
+    \underline{workoutSessionId}: SessionIdType \\
+    workoutId: WorkoutIdType \\
+    exerciseId: ExerciseIdType \\
     weightLevel: WeightLevelType \\
-    userId: UserId \\
+    numberOfSets: \nat_1 \\
+    repetitionsPerSet: \nat_1  \\
 \end{schema}
 \begin{zed}
-\textcolor{red}{PK}(Exercise) = { exerciseId } \\
+\textcolor{red}{PK}(Exercise) = \{ exerciseId \} \\
+\textcolor{red}{PK}(Workout) = \{ workoutId \} \\
+\textcolor{red}{PK}(WorkoutSession) = \{ workoutSessionId \} \\
+\newline \\ 
+(WorkoutSession, Workout) \mapsto \{ workoutId \mapsto workoutId \} \in \textcolor{red}{FK} \\
+(WorkoutSession, Exercise) \mapsto \{ exerciseId \mapsto exerciseId \} \in \textcolor{red}{FK} \\
 \end{zed}
 
-\vspace{0.2cm}
 \hspace{-0.5cm}\textbf{Movement Data}
-\newline \newline Assumptions:
-\begin{itemize}
-  \item ...
-\end{itemize}
 
 \begin{schema}{DailyMovement}
-	\underline{snapshotId}: SnapshotId \\
-    \underline{dailyMovement}: HourlyMovementId \\
-    interval: IntervalType \\
+    \underline{dailyMovementId}: DailyMovementId \\
+    calories: CaloriesType \\
+    distance: DistanceType \\ 
+    stairs: \nat \\
+    steps: \nat \\
+    pace: PaceType \\
     date: DateType \\
-    time: TimeType \\
-    userId: UserId \\
+    userId: UserIdType \\
 \end{schema}
 
 \begin{schema}{HourlyMovement}
@@ -189,183 +221,165 @@
     stairs: \nat \\
     steps: \nat \\
     pace: PaceType \\
+    date: DateType \\
+    time: TimeType \\
+    userId: UserIdType \\
 \end{schema}
 
 \begin{zed}
-\textcolor{red}{PK}(MovementSnapshot) = { snapshotId } \\
-\textcolor{red}{PK}(MovementData) = { dataId } \\
+\textcolor{red}{PK}(DailyMovement) = \{ dailyMovementId \} \\
+\textcolor{red}{PK}(HourlyMovement) = \{ hourlyMovementId \} \\
+\newline \\ 
+(DailyMovement, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
+(HourlyMovement, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
 \end{zed}
     
-
-\vspace{0.2cm}
 \hspace{-0.5cm}\textbf{Personal Goals}
-\newline \newline Assumptions:
-\begin{itemize}
-  \item message won't be the only attribute 
-\end{itemize}
 
 \begin{schema}{Goal}
 	\underline{goalId}: GoalId \\
-    userId: UserId \\
-    startDate: DateType \\
-    endDate: DateType \\ 
+    userId: UserIdType \\
+    startOn: DateTimeType \\
+    endAt: DateTimeType \\ 
     targetType: TargetType \\
     targetUnit: TargetUnit \\
     targetValue: TargetValue \\ 
 \end{schema}
 
-\begin{schema}{Outcome}
+\begin{schema}{GoalOutcome}
 	\underline{outcomeId}: OutcomeId \\
     goalId: GoalId \\
-    recordedAt: DateTimeType \\
+    achievedAt: DateTimeType \\
     status: Status \\
 \end{schema}
 
-\begin{schema}{Message}
+\begin{schema}{GoalMessage}
 	\underline{messageId}: MessageId \\
     outcomeId: OutcomeId \\
     subject: SubjectType \\
     message: MessageType \\
 \end{schema}
 
-\begin{schema}{Evidence}
+\begin{schema}{GoalEvidence}
 	\underline{evidenceId}: EvidenceId \\
     outcomeId: OutcomeId \\
-    movementId: MovementId \\
-    readingId: ReadingId \\ 
-    weightId: WeightId \\
+    dailyMovementId: DailyMovementId \\
+    hourlyMovementId: HourlyMovementId \\
+    healthReadingId: HealthReadingId \\
+    workoutSessionId: WorkoutSessionIdType \\
 \end{schema}
 
 \begin{zed}
-\textcolor{red}{PK}(Goal) = { goalId }  \\
-\textcolor{red}{PK}(GoalNotification) = { notificationId }  \\
-\textcolor{red}{PK}(GoalEvidence) = { evidenceId }  \\
+\textcolor{red}{PK}(Goal) = \{ goalId \}  \\
+\textcolor{red}{PK}(GoalOutcome) = \{ outcomeId \}  \\
+\textcolor{red}{PK}(GoalNotification) = \{ notificationId \}  \\
+\textcolor{red}{PK}(GoalEvidence) = \{ evidenceId \}  \\
+\newline \\ 
+(Goal, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
+(GoalOutcome, Goal) \mapsto \{ goalId \mapsto goalId \} \in \textcolor{red}{FK} \\
+(GoalMessage, GoalOutcome) \mapsto \{ outcomeId \mapsto outcomeId \} \in \textcolor{red}{FK} \\
+(GoalEvidence, DailyMovement) \mapsto \{ dailyMovementId \mapsto dailyMovementId \} \in \textcolor{red}{FK} \\
+(GoalEvidence, HourlyMovement) \mapsto \{ hourlyMovementId \mapsto hourlyMovementId \} \in \textcolor{red}{FK} \\
+(GoalEvidence, HealthReading) \mapsto \{ healthReadingId \mapsto healthReadingId \} \in \textcolor{red}{FK} \\
+(GoalEvidence, WorkoutSession) \mapsto \{ workoutSessionId \mapsto workoutSessionId \} \in \textcolor{red}{FK} \\
 \end{zed}
-
-\pagebreak 
 
 \subsection*{\small b)}
 
-To validate the schema is in the third normal form I need to prove it meets both the first and second normal form first.
+The schema has been designed to be in 3NF but to meet this standard I needed to make sure the schema meets the rules set out for 1NF and 2NF. \\
 \newline
+I've made sure the schema is in 1NF by flattening each relation removing repeating groups ensuring each attribute in each relation contains only a single value. \\ 
 \newline
-The provided schema does meet the first normal form as I have eliminated repeating gropus by X.
+To meet the rules of 2NF I identified partial dependencies and moved them into their own relations to ensure that every non primary key attribute is fully dependent on any candidate key in the relation. \\
 \newline
-\newline
-It also meets the second form as each non primary key attribute relates to relation.
+Finally, to meet 3NF I identified and removed any attributes that were transitively dependent on the primary key moving them into their own relation as well, removing additional redundancy. 
 
 \subsection*{\small c)}
 
-C1
+\textbf{\small{C1}}
 \begin{zed}
-\forall g: Goal @ \lnot (g.periodEnd < g.periodStart) \\
+\forall g: Goal @ \lnot (g.endDate < g.startDate) \\
 \end{zed}
-C2
+\textbf{\small{C2}}
 \begin{zed}
 \forall dm: DailyMovement @ \\
-    \t1 dm.calories = sum \\
-    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.calories \} \\
-    \t1 dm.distance = sum \\
-    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.distance \} \\
-    \t1 dm.stairs = sum \\
-    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.stairs \} \\
-    \t1 dm.steps = sum \\
-    \t2 \{ hm: HourlyMovement | (dm.userId, dm.date, dm.pace) = (hm.userId, hm.date, hm.pace) @ hm.steps \} \\
+    \t1 d.calories = sum\{ h: HourlyMovement | (d.userId, d.date, d.pace) = (h.userId, h.date, h.pace) @ h.calories \} \\
+    \t1 d.distance = sum\{ h: HourlyMovement | (d.userId, d.date, d.pace) = (h.userId, h.date, h.pace) @ h.distance \} \\
+    \t1 d.stairs = sum\{ h: HourlyMovement | (d.userId, d.date, d.pace) = (h.userId, h.date, h.pace) @ h.stairs \} \\
+    \t1 d.steps = sum\{ h: HourlyMovement | (d.userId, d.date, d.pace) = (h.userId, h.date, h.pace) @ h.steps \} \\
 \end{zed}
-C3
+\textbf{\small{C3}}
 \begin{zed}
-\forall d: DateType; u: User @ \\
-    \t1 \#\{ g: Goal | u.userId = g.userId \land g.periodStart \leq d \land g.periodEnd > d \} <= 3 \\
+\forall u: User; d: DateType @ \\
+\t1 \#\{ g: Goal | g.userId = u.userId \land g.startsAt \leq d \land g.endsAt > d \} \leq 3
 \end{zed}
-C4
+\textbf{\small{C4}}
 \begin{zed}
-\forall o: GoalOutcome @ \\ 
-    \t1 o.status \in \{Success, Failure\} \implies (\exists e: GoalEvidence | o.outcomeId = e.outcomeId) \\
+\forall o: GoalOutcome @ \\
+\t1 o.status \in \{Success, Failure\} \implies (\exists e: GoalEvidence | o.outcomeId = e.outcomeId) \\
 \end{zed}
-Additional Constraints:
+\textbf{\small{Additional Constraints}}
+
 \begin{itemize}
-  \item Diet data should have a constraint on date to make sure dietDate is unique per date and user. 
-  \item Each movement snapshot should have movement data one for each pace type which can be added as a constraint 
-  \item Meal entries should be restricted to one meal type per day 
+  \item It would make sense to introduce a constraint to make sure there is at most 1 entry in the $Diet$ relation for each user for each day, ensuring all $Meal$ / $Food$ / $Drink$ entries are grouped together in a consistent manner.
+  \item For goals it would make sense to ensure consistency between the $userId$ referenced for the goal and the evidence tied to the $GoalOutcome$. It would also make sense to ensure the $achievedAt$ is not before or after the goal period captured in the $startOn$ and $endAt$ attirbutes in the $Goal$ relation.
 \end{itemize}
 
 \subsection*{\small d)}
 
-Storage
+I would want to ask various questions to dive deeper into the requirements regarding the type of data we would store. When it comes to attributes like a user’s $height$ or a health reading’s $value$ it would make sense establish the requirements around precision to help optimized the solution a database storage level. There are various like values such as $Gender$, $MetricUnitType$, $DrinkType$ which would be good to get more details to be able to firmly say should they enum style types or have their own relations to new values can be added easier in future. \\
 \newline
-Indices (clustered and nonclustered)
+I'd like to also ask for more detailed examples of how data would be queried. This would help identify important attributes in the relations that would potentially benefit from having an index applied. For example would a regular index on the $GoalOutcome$ $status$ attribute make sense so users could retrieve failed goals easier? Or potentially a clustered index $startsOn$ attribute in the $Goal$ relation to users can query goals that started within a given range efficiently. \\
 \newline
-Audit info (do we need to create triggers to capture timestamps)
-\newline
-Orthagonal design (slit active from non active users of the app)
+I would also ask about the amount of data being stored and estimates for expected reads and writes over a typical period. As it would be good to clarify the required performance and scaling needs when implementing the schema. As we may need to apply techniques such as read replicas, partitions, sharding and potentially denormalization to ensure we meet expectations on performance and scale gracefully.
 
-\pagebreak 
+\pagebreak
+
 \section*{Q2}
+
+For answering these questions I've assumed the presence of the $currentUser$ variable which is of type $User$ that captures the user executing the query. I've also assumed that the $DateType$ type used in the schema has year, month and day variables that are natural numbers. Finally I've assumed that $distance$ in the $DailyMovement$ relation is stored as miles and no converstion is required for the query.
 
 \subsection*{\small a)}
 
 \begin{zed}
-    A == Restrict\small{\{userId = currentUserId \land takenAt.year = 2023 \land takenAt.month = February \}}(MovementSnapshot) \\
-    B == Restrict\small{\{md.distance >= 1 \land movementPace \in \{ Walked, Ran \}\}} \\
-    C == Project\small{\{takenAt.day\}}(Join(A, B)) \\
-\end{zed}
-
-\begin{zed}
-\{ ms: MovementSnapshot; md: MovementData | \\
-    \t1 ms.snapshotId = md.snapshotId \land ms.userId = currentUserId \\
-    \t1 ms.takenAt.year = 2023 \land ms.takenAt.month = February \\
-    \t1 md.distance >= 1 \land md.movementPace \in \{ Walked, Ran \} @ \\
-        \t2 ( day == ms.takenAt.day ) \}
+\{ d: DailyMovement | \\
+    \t1 d.userId = currentUser.userId \land \\
+    \t1 d.date.year = 2023 \land d.date.month = 2 \land \\
+    \t1 d.distance \geq 1 \land d.pace \in \{ Walked, Ran \} \\
+        \t2 @ \lblot day == d.date.day \rblot \}
 \end{zed}
 
 \subsection*{\small b)}
-
-Need to join to get status.
-
-\begin{zed}
-A = Restrict\small{userId = currentUserId}(Goal) \\
-B = Restrict\small{goalStart < Feb2023}(A) \\
-C = Restrict\small{goalEnd >= Feb2023}(B)
-\end{zed}
-
 \begin{zed}
 \{ g: Goal | \\
-    \t1 g.userId = currentUserId \land \\
-    \t1 g.goalStart < Feb2023 \land \\
-    \t1 g.goalEnd >= Feb2023 \\
-\}
+    \t1 g.userId = currentUser.userId \land \\
+    \t1 g.startAt.month \leq 1 \land g.startAt.year \leq 2023 \\
+    \t1 g.endOn.month \geq 1 \land g.endOn.year \geq 2023 \} \\
 \end{zed}
 
 \subsection*{\small c)}
-
 \begin{zed}
-A == Restrict\small{userId = currentUserId \land goal.goalEnd.year = 2023 \land goal.status = Success}(Goal) \\
-B == Project\small{month, goalId}(A) \\
-C == B GroupBy(count(goalId) as goalsMet) \\
-D == C GroupBy(max(goalsMet) as maxGoalsMet) \\
-E == Join(C, D) \\
-F == Restrict\small{goalsMet = maxGoalsMet}(E) \\ 
-G == Project\small{month}(F)
-\end{zed}
-
-\begin{zed}
-\forall t: Table
+A == Restrict\{userId = currentUser.userId \}(Goal) \\
+B == Restrict\{achievedAt.year = 2023 \land status = Success \}(GoalOutcome) \\
+C == Project\{achievedAt.year, achievedAt.month, goalId\}(Join(A, B)) \\
+D == C\ GroupBy(Count(goalId)\ as\ metPerMonth) \\
+E == Project\{year, metPerMonth\}(D) \\
+F == E\ GroupBy(Max(metPerMonth)\ as\ maxGoalsMet) \\
+G == Project\{month\}(Restrict\{maxGoalsMet = metPerMonth\}(Join(E, F)) \\
 \end{zed}
 
 \subsection*{\small d)}
-
 \begin{zed}
-A == Restrict{userId = currentUserId \land interval = Daily \land takenAt.year = 2023}(MovementSnapshot) \\
-B == Join(A, MovementData) \\ 
-C == Project{takenAt.month, calories}(B) \\ 
-D == C GroupBy(avg(calories) as averageDailyCalories) \\
+A == Restrict\{userId = currentUser.userId\}(DailyMovement) \\
+B == Restrict\{date.year = 2023 \}(A) \\
+C == Project\{date, calories\}(B) \\
+D == C\ GroupBy(Sum(calories)\ as\ dailyTotal) \\ 
+E == Project\{date.month, dailyTotal\}(D) \\ 
+F == E\ GroupBy(Avg(dailyTotal)\ as\ dailyAverage) \\
 \end{zed}
 
-\begin{zed}
-\forall t: Table
-\end{zed}
+\pagebreak
 
-\pagebreak 
 \section*{Q3}
 
 \subsection*{\small a)}
@@ -383,6 +397,10 @@ CREATE TABLE Persons (
 
 \subsection*{\small b)}
 
+C1 - Check - column
+C2 - Trigger - before insert
+C3 - Check - column
+C4 - Trigger - before insert
 \begin{lstlisting}[language=sql]
 ALTER TABLE Persons ADD CONSTRAINT CHK_PersonAge CHECK (
     Age>=18 AND City='Sandnes'
@@ -405,7 +423,6 @@ ORDER BY
     z
 \end{lstlisting}
 
-\pagebreak 
 \section*{Q4}
 
 \subsection*{\small a)}
