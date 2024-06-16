@@ -78,7 +78,7 @@
 \textbf{Personal Information}
 \newline \newline Assumptions:
 \begin{itemize}
-    \item I've assumed that the schema doesn't need to support a broad list of genders and therefore it’s stored as an attribute on the $User$ relation rather split into its own.
+    \item I've assumed that the schema doesn't need to support a broad list of genders and therefore it’s stored as an attribute on the $User$ relation rather split into its own relation.
 \end{itemize}
 
 \begin{schema}{User}
@@ -289,6 +289,8 @@
 (GoalEvidence, WorkoutSession) \mapsto \{ sessionId \mapsto sessionId \} \in \textcolor{red}{FK} \\
 \end{zed}
 
+\pagebreak
+
 \subsection*{\small b)}
 
 The schema has been designed to be in 3NF but to meet this standard I needed to make sure the schema meets the rules set out for 1NF and 2NF. \\
@@ -298,6 +300,8 @@ I've made sure the schema is in 1NF by flattening each relation removing repeati
 To meet the rules of 2NF I identified partial dependencies and moved them into their own relations to ensure that every non primary key attribute is fully dependent on any candidate key in the relation. \\
 \newline
 Finally, to meet 3NF I identified and removed any attributes that were transitively dependent on the primary key moving them into their own relation as well, removing additional redundancy. 
+
+\pagebreak
 
 \subsection*{\small c)}
 
@@ -316,7 +320,7 @@ Finally, to meet 3NF I identified and removed any attributes that were transitiv
 \textbf{\small{C3}}
 \begin{zed}
 \forall u: User; d: DateType @ \\
-\t1 \#\{ g: Goal | g.userId = u.userId \land g.startsAt \leq d \land g.endsAt > d \} \leq 3
+\t1 \#\{ g: Goal | g.userId = u.userId \land g.startsAt \leq d \land g.endsAt \geq d \} \leq 3
 \end{zed}
 \textbf{\small{C4}}
 \begin{zed}
@@ -324,7 +328,7 @@ Finally, to meet 3NF I identified and removed any attributes that were transitiv
 \t1 \exists e: GoalEvidence | e.goalId = o.goalId @ \\
 \t2 \{ h: HourlyMovement | e.hourlyMovementId = h.hourlyMovementId \} \neq \emptyset \lor \\
 \t2 \{ d: DailyMovement | e.dailyMovementId = d.dailyMovementId \} \neq \emptyset \lor \\
-\t2 \{ s: WorkoutSession | e.sessionId = s.sessionId \} \neq \emptyset \\
+\t2 \{ s: WorkoutSession | e.workoutSessionId = s.sessionId \} \neq \emptyset \\
 \t2 \{ r: HealthReading | e.healthReadingId = r.healthReadingId \} \neq \emptyset \lor \\
 \end{zed}
 \textbf{\small{Additional Constraints}}
@@ -333,6 +337,8 @@ Finally, to meet 3NF I identified and removed any attributes that were transitiv
   \item It would make sense to introduce a constraint to make sure there is at most 1 entry in the $Diet$ relation for each user for each day, ensuring all $Meal$ / $Food$ / $Drink$ entries are grouped together in a consistent manner.
   \item For goals it would make sense to ensure consistency between the $userId$ referenced for the goal and the evidence tied to the $GoalOutcome$. It would also make sense to ensure the $achievedAt$ is not before or after the goal period captured in the $startOn$ and $endAt$ attirbutes in the $Goal$ relation.
 \end{itemize}
+
+\pagebreak
 
 \subsection*{\small d)}
 
@@ -556,18 +562,20 @@ CREATE TABLE GoalEvidence (
 
 \textbf{\small{C1}}
 \begin{lstlisting}[language=sql]
-ALTER TABLE Goal ADD CONSTRAINT Check_EndsAt CHECK (NOT endsAt < startAt);
+ALTER TABLE Goal ADD CONSTRAINT Check_EndsAt CHECK (NOT endAt < startOn);
 \end{lstlisting}
 \textbf{\small{C2}}
 \begin{lstlisting}[language=sql]
-CREATE TRIGGER CheckDailyMovement
+CREATE TRIGGER Check_DailyMovement
 BEFORE INSERT ON DailyMovement
-REFERENCING NEW ROW AS newrow FOR EACH ROW
-BEGIN ATOMIC
-    IF ((newrow.calories, newrow.distance, newrow.stairs, newrow.steps) <> (
-        SELECT SUM(calories), SUM(distance), SUM(stairs), SUM(steps) 
-        FROM HourlyMovement 
-        WHERE userId = newrow.userId and pace = newrow.pace and date = newrow.date
+FOR EACH ROW
+BEGIN
+    IF (
+        (NEW.calories, NEW.distance, NEW.stairs, NEW.steps) <> (
+            SELECT SUM(calories), SUM(distance), SUM(stairs), SUM(steps) 
+            FROM HourlyMovement
+            WHERE userId = NEW.userId and pace = NEW.pace and date = NEW.date
+        )
     ) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Daily/Hourly figures are not consistent';
     END IF;
@@ -575,17 +583,16 @@ END;
 \end{lstlisting}
 \textbf{\small{C3}}
 \begin{lstlisting}[language=sql]
-CREATE TRIGGER CheckActiveGoals
+CREATE TRIGGER Check_ActiveGoals
 BEFORE INSERT ON Goal
-REFERENCING NEW ROW AS newrow FOR EACH ROW
-BEGIN ATOMIC
-    IF ( 
-      SELECT 1 + COUNT(*) 
-      FROM Goal 
-      WHERE newrow.userId = userId and (
-        newrow.startAt BETWEEN startAt and endAt or 
-        newrow.endAt BETWEEN startAt and endAt
-      ) >= 3  
+FOR EACH ROW
+BEGIN
+    IF (
+      3 < (
+        SELECT COUNT(*) 
+        FROM Goal 
+        WHERE NEW.userId = userId AND NEW.endAt >= startOn AND NEW.startOn <= endAt
+      ) 
     ) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User cannot have more than 3 active goals';
     END IF;
@@ -593,23 +600,24 @@ END;
 \end{lstlisting}
 \textbf{\small{C4}}
 \begin{lstlisting}[language=sql]
-CREATE TRIGGER CheckActiveGoals
+CREATE TRIGGER Check_GoalEvidence
 BEFORE INSERT ON GoalOutcome
-REFERENCING NEW ROW AS newrow FOR EACH ROW
-BEGIN ATOMIC
-  IF (  
-    SELECT COUNT(*) 
-    FROM GoalOutcome 
-    WHERE 
-      goalId = newrow.goalId
-      dailyMovementId <> NULL OR 
-      hourlyMovementId <> NULL OR 
-      sessionId <> NULL OR 
-      healthReadingId <> NULL
-    >= 1
-  ) THEN
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Outcome must have one piece of evidence minimum';
-  END IF;
+FOR EACH ROW
+BEGIN
+    IF (  
+        0 = (
+            SELECT COUNT(*) 
+            FROM GoalEvidence 
+            WHERE goalId = NEW.goalId AND (
+            dailyMovementId IS NOT NULL OR 
+            hourlyMovementId IS NOT NULL OR 
+            workoutSessionId IS NOT NULL OR 
+            healthReadingId IS NOT NULL
+            )
+        )
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Goal outcome must have evidence';
+    END IF;
 END;
 \end{lstlisting}
 
@@ -617,40 +625,42 @@ END;
 
 \subsection*{\small c)}
 
+For these queries there is a $@userId$ parameter assumed to be available to tailor the query to a given user.
 \textbf{\small{a.}}
 \begin{lstlisting}[language=sql]
-SELECT DAY(date) 
+SELECT DAY(date) as 'day'
 FROM DailyMovement 
-WHERE 
-  userId = :currentUserId AND 
-  YEAR(date) = 2023 AND MONTH(date) = 2 AND 
+WHERE userId = @userId AND YEAR(date) = 2023 AND MONTH(date) = 2 AND 
   distance >= 1 AND pace in ('Walked', 'Ran')
 \end{lstlisting}
 \textbf{\small{b.}}
 \begin{lstlisting}[language=sql]
-SELECT * 
+SELECT goalId, userId, startOn, endAt, description, objective, measurement, target
 FROM Goal 
-WHERE 
-  userId = :currentUserId AND 
-  startAt <= '2023-01-01' AND endOn >= '2023-01-31'
+WHERE userId = @userId AND startOn  <= '2023-01-31' AND endAt >= '2023-01-01'
 \end{lstlisting}
 \textbf{\small{c.}}
 \begin{lstlisting}[language=sql]
-SELECT MONTH(o.achievedAt) FROM Goal g
-INNER JOIN GoalOutcome o ON g.goalId = o.goalId 
-WHERE YEAR(o.achievedAt) = 2023 AND g.userId = :currentUserId
+SELECT MONTH(o.achievedAt) as 'month'
+FROM Goal g
+INNER JOIN GoalOutcome o ON g.goalId = o.goalId
+WHERE YEAR(o.achievedAt) = 2023 AND g.userId = @userId
 GROUP BY MONTH(o.achievedAt)
 ORDER BY COUNT(g.goalId) DESC
 LIMIT 1
 \end{lstlisting}
 \textbf{\small{d.}}
 \begin{lstlisting}[language=sql]
-SELECT MONTH(date), AVG(dailyCalories) FROM (
-  SELECT date, SUM(calories) as 'dailyCalories'
-  FROM DailyMovement 
-  WHERE YEAR(date) = 2023 and userId = :currentUserId
-  GROUP BY DAY(date)
-)
+SELECT 
+  MONTH(date) as 'month', 
+  AVG(totalDaily) as 'averageDailyCalories'
+FROM (
+  SELECT date, SUM(calories) 'totalDaily'
+  FROM  DailyMovement 
+  WHERE YEAR(date) = 2023 and userId = @userId
+  GROUP BY date
+) T
+GROUP BY MONTH(date)
 \end{lstlisting}
 
 \pagebreak
