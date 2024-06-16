@@ -78,9 +78,9 @@
 \textbf{Personal Information}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item That height will be stored as centimeters and there isn't a need support capturing height in either metric or/and imperial units.
-  \item That gender doesn't need to support a broad range of values. If it did it would make sense to create a new $Gender$ relation that the $User$ relation can have a foreign key to. 
+    \item I've assumed that the schema doesn't need to support a broad list of genders and therefore it’s stored as an attribute on the $User$ relation rather split into its own.
 \end{itemize}
+
 \begin{schema}{User}
 	\underline{userId}: UserIdType \\
     emailAddress: EmailAddressType \\
@@ -90,6 +90,7 @@
     gender: GenderType \\
     height: HeightType \\ 
 \end{schema}
+
 \begin{zed}
 \textcolor{red}{PK}(User) = \{ userId \} \\
 \end{zed}
@@ -98,28 +99,30 @@
 \hspace{-0.5cm}\textbf{Health Status Data}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item That we don't need to track readings submitted together. If it was, introducing a $Submission$ relation and a new foreign key attribute to $HealthReading$ could enable that.
+  \item I've assumed that eventually we would capture additional attributes tied to the reading e.g location and therefore it made sense to normalise the relation and store readings and metrics separately.
+  \item I've also assumed blood pressure should be broken down into systolic and diastolic readings and therefore should be separate attributes.
 \end{itemize}
 
-\begin{schema}{HealthMetric}
-\underline{healthMetricId}: MetricIdType \\
-metricName: MetricNameType \\ 
-metricUnit: MetricUnitType \\ 
-\end{schema}
-
 \begin{schema}{HealthReading}
-	\underline{healthReadingId}: ReadingIdType \\
-    submissionId: SubmissionId \\
-    metricId: MetricIdType \\
-    value: MetricValueType \\
+	\underline{readingId}: ReadingIdType \\
     readAt: DateTimeType \\
     userId: UserIdType \\
 \end{schema}
+
+\begin{schema}{HealthMetrics}
+    \underline{metricsId}: MetricIdType \\
+    readingId: ReadingIdType \\
+    weight: WeightType \\ 
+    glucoseLevel: GlucoseLevelType \\
+    systolicBloodPressure: BloodPressureType \\
+    diastolicBloodPressure: BloodPressureType \\
+\end{schema}
+
 \begin{zed}
-\textcolor{red}{PK}(HealthMetric) = \{ healthMetricId \} \\
-\textcolor{red}{PK}(HealthReading) = \{ healthReadingId \} \\ 
+\textcolor{red}{PK}(HealthReading) = \{ readingId \} \\ 
+\textcolor{red}{PK}(HealthMetrics) = \{ metricsId \} \\
 \newline \\ 
-(HealthReading, HealthMetric) \mapsto \{ metricId \mapsto healthMetricId \} \in \textcolor{red}{FK} \\
+(HealthMetrics, HealthReading) \mapsto \{ readingId \mapsto readingId \} \in \textcolor{red}{FK} \\
 (HealthReading, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
 \end{zed}
     
@@ -132,8 +135,8 @@ metricUnit: MetricUnitType \\
 
 \begin{schema}{Diet}
     \underline{dietId}: DietId \\
+    forDate: DateType \\
     userId: UserIdType \\
-    date: DateType \\
 \end{schema}
 
 \begin{schema}{Meal}
@@ -185,7 +188,7 @@ metricUnit: MetricUnitType \\
 \end{schema}
 
 \begin{schema}{WorkoutSession}
-    \underline{workoutSessionId}: SessionIdType \\
+    \underline{sessionId}: SessionIdType \\
     workoutId: WorkoutIdType \\
     exerciseId: ExerciseIdType \\
     weightLevel: WeightLevelType \\
@@ -195,7 +198,7 @@ metricUnit: MetricUnitType \\
 \begin{zed}
 \textcolor{red}{PK}(Exercise) = \{ exerciseId \} \\
 \textcolor{red}{PK}(Workout) = \{ workoutId \} \\
-\textcolor{red}{PK}(WorkoutSession) = \{ workoutSessionId \} \\
+\textcolor{red}{PK}(WorkoutSession) = \{ sessionId \} \\
 \newline \\ 
 (WorkoutSession, Workout) \mapsto \{ workoutId \mapsto workoutId \} \in \textcolor{red}{FK} \\
 (WorkoutSession, Exercise) \mapsto \{ exerciseId \mapsto exerciseId \} \in \textcolor{red}{FK} \\
@@ -241,9 +244,10 @@ metricUnit: MetricUnitType \\
     userId: UserIdType \\
     startOn: DateTimeType \\
     endAt: DateTimeType \\ 
-    targetType: TargetType \\
-    targetUnit: TargetUnit \\
-    targetValue: TargetValue \\ 
+    description: DescriptionType \\
+    objective: ObjectiveType \\
+    measurement: MeasurementType \\
+    target: TargetType \\ 
 \end{schema}
 
 \begin{schema}{GoalOutcome}
@@ -262,11 +266,11 @@ metricUnit: MetricUnitType \\
 
 \begin{schema}{GoalEvidence}
 	\underline{evidenceId}: EvidenceId \\
-    outcomeId: OutcomeId \\
+    goalId: GoalId \\
     dailyMovementId: DailyMovementId \\
     hourlyMovementId: HourlyMovementId \\
     healthReadingId: HealthReadingId \\
-    workoutSessionId: WorkoutSessionIdType \\
+    sessionId: WorkoutSessionIdType \\
 \end{schema}
 
 \begin{zed}
@@ -278,10 +282,11 @@ metricUnit: MetricUnitType \\
 (Goal, User) \mapsto \{ userId \mapsto userId \} \in \textcolor{red}{FK} \\
 (GoalOutcome, Goal) \mapsto \{ goalId \mapsto goalId \} \in \textcolor{red}{FK} \\
 (GoalMessage, GoalOutcome) \mapsto \{ outcomeId \mapsto outcomeId \} \in \textcolor{red}{FK} \\
+(GoalEvidence, Goal) \mapsto \{ goalId \mapsto goalId \} \in \textcolor{red}{FK} \\
 (GoalEvidence, DailyMovement) \mapsto \{ dailyMovementId \mapsto dailyMovementId \} \in \textcolor{red}{FK} \\
 (GoalEvidence, HourlyMovement) \mapsto \{ hourlyMovementId \mapsto hourlyMovementId \} \in \textcolor{red}{FK} \\
 (GoalEvidence, HealthReading) \mapsto \{ healthReadingId \mapsto healthReadingId \} \in \textcolor{red}{FK} \\
-(GoalEvidence, WorkoutSession) \mapsto \{ workoutSessionId \mapsto workoutSessionId \} \in \textcolor{red}{FK} \\
+(GoalEvidence, WorkoutSession) \mapsto \{ sessionId \mapsto sessionId \} \in \textcolor{red}{FK} \\
 \end{zed}
 
 \subsection*{\small b)}
@@ -316,7 +321,11 @@ Finally, to meet 3NF I identified and removed any attributes that were transitiv
 \textbf{\small{C4}}
 \begin{zed}
 \forall o: GoalOutcome @ \\
-\t1 o.status \in \{Success, Failure\} \implies (\exists e: GoalEvidence | o.outcomeId = e.outcomeId) \\
+\t1 \exists e: GoalEvidence | e.goalId = o.goalId @ \\
+\t2 \{ h: HourlyMovement | e.hourlyMovementId = h.hourlyMovementId \} \neq \emptyset \lor \\
+\t2 \{ d: DailyMovement | e.dailyMovementId = d.dailyMovementId \} \neq \emptyset \lor \\
+\t2 \{ s: WorkoutSession | e.sessionId = s.sessionId \} \neq \emptyset \\
+\t2 \{ r: HealthReading | e.healthReadingId = r.healthReadingId \} \neq \emptyset \lor \\
 \end{zed}
 \textbf{\small{Additional Constraints}}
 
@@ -381,118 +390,276 @@ F == E\ GroupBy(Avg(dailyTotal)\ as\ dailyAverage) \\
 \pagebreak
 
 \section*{Q3}
-
+The SQL provided has been written to be compatible with MySQL v8.0 and would potentially need to be tweaked in circumstances for other relational database options.
+\vspace{-0.2cm}
 \subsection*{\small a)}
-
+\vspace{-0.3cm}
 \begin{lstlisting}[language=sql]
-
 /* User Data */
-CREATE TABLE User (
-
+CREATE Table User (
+  userId INT AUTO_INCREMENT PRIMARY KEY,
+  emailAddress VARCHAR(100) UNIQUE NOT NULL,
+  firstName VARCHAR(50) NOT NULL,
+  lastName VARCHAR(50) NOT NULL,
+  dateOfBirth DATE NOT NULL,
+  gender ENUM('M', 'F', 'O') NOT NULL,
+  height DECIMAL(5,2) NOT NULL
 );
 
 /* Health Reading */
-CREATE TABLE HealthMetric (
-
+CREATE TABLE HealthReading (
+  readingId INT AUTO_INCREMENT PRIMARY KEY,
+  readAt TIMESTAMP NOT NULL,
+  userId INT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(userId)
 );
 
-CREATE TABLE HealthReading (
-
+CREATE TABLE HealthMetrics (
+  metricsId INT AUTO_INCREMENT PRIMARY KEY,
+  readingId INT NOT NULL,
+  weight DECIMAL(5, 2) NOT NULL,
+  glucoseLevel DECIMAL(5, 2) NOT NULL,
+  systolicBloodPressure INT NOT NULL,
+  diastolicBloodPressure INT NOT NULL,
+  FOREIGN KEY (readingId) REFERENCES HealthReading(readingId)
 );
 
 /* Diet Data */
 CREATE TABLE Diet (
-
+  dietId INT AUTO_INCREMENT PRIMARY KEY,
+  forDate DATE NOT NULL,
+  userId INT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(userId)
 );
 
 CREATE TABLE Meal (
-
+  mealId INT AUTO_INCREMENT PRIMARY KEY,
+  dietId INT NOT NULL,
+  mealType ENUM('Breakfast', 'Lunch', 'Dinner') NOT NULL,
+  mealSize ENUM('Light', 'Medium', 'Heavy') NOT NULL,
+  FOREIGN KEY (dietId) REFERENCES Diet(dietId)
 );
 
 CREATE TABLE Food (
-
+  foodId INT AUTO_INCREMENT PRIMARY KEY,
+  dietId INT NOT NULL,
+  foodName VARCHAR(255) NOT NULL,
+  calories DECIMAL(5, 2) NOT NULL,
+  quantity INT NOT NULL,
+  FOREIGN KEY (dietId) REFERENCES Diet(dietId)
 );
 
 CREATE TABLE Drink (
-
+  drinkId INT AUTO_INCREMENT PRIMARY KEY,
+  dietId INT NOT NULL,
+  drinkType ENUM('Water', 'Juice', 'Soda') NOT NULL,
+  calories DECIMAL(5, 2) NOT NULL,
+  glasses INT NOT NULL,
+  FOREIGN KEY (dietId) REFERENCES Diet(dietId)
 );
 
 /* Gym Performance Data */
 CREATE TABLE Exercise (
-
+  exerciseId INT AUTO_INCREMENT PRIMARY KEY,
+  exerciseName VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE Workout (
-
+CREATE Table Workout (
+  workoutId INT AUTO_INCREMENT PRIMARY KEY,
+  occuredAt DATETIME NOT NULL,
+  userId INT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(userId)
 );
 
 CREATE TABLE WorkoutSession (
-
+  sessionId INT AUTO_INCREMENT PRIMARY KEY,
+  workoutId INT NOT NULL,
+  exerciseId INT NOT NULL,
+  weightLevel DECIMAL(5, 2) NOT NULL,
+  numberOfSets INT NOT NULL,
+  repetitionsPerSet INT NOT NULL,
+  FOREIGN KEY (workoutId) REFERENCES Workout(workoutId),
+  FOREIGN KEY (exerciseId) REFERENCES Exercise(exerciseId)
 );
 
 /* Movement Data */
 CREATE TABLE DailyMovement (
-
+  dailyMovementId INT AUTO_INCREMENT PRIMARY KEY,
+  calories DECIMAL(5, 2) NOT NULL,
+  distance DECIMAL(8, 2) NOT NULL,
+  stairs INT NOT NULL,
+  steps INT NOT NULL,
+  pace ENUM('Walked', 'Ran', 'Jogged') NOT NULL,
+  date DATE NOT NULL,
+  userId INT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(userId)
 );
 
 CREATE TABLE HourlyMovement (
-
+  hourlyMovementId INT AUTO_INCREMENT PRIMARY KEY,
+  calories DECIMAL(5, 2) NOT NULL,
+  distance DECIMAL(8, 2) NOT NULL,
+  stairs INT NOT NULL,
+  steps INT NOT NULL,
+  pace ENUM('Walked', 'Ran', 'Jogged') NOT NULL,
+  date DATE NOT NULL,
+  time TIME NOT NULL,
+  userId INT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(userId)
 );
 
 /* Personal Goals */
 CREATE TABLE Goal (
-
+  goalId INT AUTO_INCREMENT PRIMARY KEY,
+  userId INT NOT NULL,
+  startOn DATE NOT NULL,
+  endAt DATE NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  objective ENUM('Weight Loss', 'Toning', 'Ran', 'Walked') NOT NULL,
+  measurement ENUM('kg', 'km') NOT NULL,
+  target DECIMAL(8, 2) NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(userId)
 );
 
 CREATE TABLE GoalOutcome (
-
+  outcomeId INT AUTO_INCREMENT PRIMARY KEY,
+  goalId INT NOT NULL,
+  achievedAt DATETIME NOT NULL,
+  status ENUM('Success', 'Failed') NOT NULL,
+  FOREIGN KEY (goalId) REFERENCES Goal(goalId)
 );
 
 CREATE TABLE GoalMessage (
-
+  messageId INT AUTO_INCREMENT PRIMARY KEY,
+  outcomeId INT NOT NULL,
+  subject VARCHAR(50) NOT NULL,
+  message TEXT NOT NULL
 );
 
 CREATE TABLE GoalEvidence (
-
+  evidenceId INT AUTO_INCREMENT PRIMARY KEY,
+  goalId INT NOT NULL,
+  dailyMovementId INT,
+  hourlyMovementId INT,
+  healthReadingId INT,
+  workoutSessionId INT,
+  FOREIGN KEY (dailyMovementId) REFERENCES DailyMovement(dailyMovementId),
+  FOREIGN KEY (hourlyMovementId) REFERENCES HourlyMovement(hourlyMovementId),
+  FOREIGN KEY (healthReadingId) REFERENCES HealthReading(readingId),
+  FOREIGN KEY (workoutSessionId) REFERENCES WorkoutSession(sessionId)
 );
 \end{lstlisting}
 
 
+\pagebreak
 \subsection*{\small b)}
 
-C1 - Check - column
-C2 - Trigger - before insert
-C3 - Check - column
-C4 - Trigger - before insert
+\textbf{\small{C1}}
 \begin{lstlisting}[language=sql]
-ALTER TABLE Persons ADD CONSTRAINT CHK_PersonAge CHECK (
-    Age>=18 AND City='Sandnes'
-);
+ALTER TABLE Goal ADD CONSTRAINT Check_EndsAt CHECK (NOT endsAt < startAt);
 \end{lstlisting}
+\textbf{\small{C2}}
+\begin{lstlisting}[language=sql]
+CREATE TRIGGER CheckDailyMovement
+BEFORE INSERT ON DailyMovement
+REFERENCING NEW ROW AS newrow FOR EACH ROW
+BEGIN ATOMIC
+    IF ((newrow.calories, newrow.distance, newrow.stairs, newrow.steps) <> (
+        SELECT SUM(calories), SUM(distance), SUM(stairs), SUM(steps) 
+        FROM HourlyMovement 
+        WHERE userId = newrow.userId and pace = newrow.pace and date = newrow.date
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Daily/Hourly figures are not consistent';
+    END IF;
+END;
+\end{lstlisting}
+\textbf{\small{C3}}
+\begin{lstlisting}[language=sql]
+CREATE TRIGGER CheckActiveGoals
+BEFORE INSERT ON Goal
+REFERENCING NEW ROW AS newrow FOR EACH ROW
+BEGIN ATOMIC
+    IF ( 
+      SELECT 1 + COUNT(*) 
+      FROM Goal 
+      WHERE newrow.userId = userId and (
+        newrow.startAt BETWEEN startAt and endAt or 
+        newrow.endAt BETWEEN startAt and endAt
+      ) >= 3  
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User cannot have more than 3 active goals';
+    END IF;
+END;
+\end{lstlisting}
+\textbf{\small{C4}}
+\begin{lstlisting}[language=sql]
+CREATE TRIGGER CheckActiveGoals
+BEFORE INSERT ON GoalOutcome
+REFERENCING NEW ROW AS newrow FOR EACH ROW
+BEGIN ATOMIC
+  IF (  
+    SELECT COUNT(*) 
+    FROM GoalOutcome 
+    WHERE 
+      goalId = newrow.goalId
+      dailyMovementId <> NULL OR 
+      hourlyMovementId <> NULL OR 
+      sessionId <> NULL OR 
+      healthReadingId <> NULL
+    >= 1
+  ) THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Outcome must have one piece of evidence minimum';
+  END IF;
+END;
+\end{lstlisting}
+
+\pagebreak 
 
 \subsection*{\small c)}
 
+\textbf{\small{a.}}
 \begin{lstlisting}[language=sql]
-SELECT 
-    x,
-    y,
-    z
-FROM 
-    CustomTable 
-GROUP BY 
-    x,
-    y
-ORDER BY
-    z
+SELECT DAY(date) 
+FROM DailyMovement 
+WHERE 
+  userId = :currentUserId AND 
+  YEAR(date) = 2023 AND MONTH(date) = 2 AND 
+  distance >= 1 AND pace in ('Walked', 'Ran')
 \end{lstlisting}
+\textbf{\small{b.}}
+\begin{lstlisting}[language=sql]
+SELECT * 
+FROM Goal 
+WHERE 
+  userId = :currentUserId AND 
+  startAt <= '2023-01-01' AND endOn >= '2023-01-31'
+\end{lstlisting}
+\textbf{\small{c.}}
+\begin{lstlisting}[language=sql]
+SELECT MONTH(o.achievedAt) FROM Goal g
+INNER JOIN GoalOutcome o ON g.goalId = o.goalId 
+WHERE YEAR(o.achievedAt) = 2023 AND g.userId = :currentUserId
+GROUP BY MONTH(o.achievedAt)
+ORDER BY COUNT(g.goalId) DESC
+LIMIT 1
+\end{lstlisting}
+\textbf{\small{d.}}
+\begin{lstlisting}[language=sql]
+SELECT MONTH(date), AVG(dailyCalories) FROM (
+  SELECT date, SUM(calories) as 'dailyCalories'
+  FROM DailyMovement 
+  WHERE YEAR(date) = 2023 and userId = :currentUserId
+  GROUP BY DAY(date)
+)
+\end{lstlisting}
+
+\pagebreak
 
 \section*{Q4}
 
 \subsection*{\small a)}
 
-Non Relational Design
-
-https://www.mongodb.com/blog/post/building-with-patterns-a-summary
+Non Relational Design: https://www.mongodb.com/blog/post/building-with-patterns-a-summary
 
 \subsection*{\small b)}
 
@@ -528,9 +695,10 @@ https://www.mongodb.com/blog/post/building-with-patterns-a-summary
 \subsection*{\small c)}
 
 Comparitive analysis
-
-1) Data Model
-2) Scalability
-3) Query Language
+\begin{itemize}
+\item Data Model
+\item Scalability
+\item Query Language
+\end{itemize}
 
 \end{document}
