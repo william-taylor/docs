@@ -715,37 +715,8 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
   ]
 }
 \end{lstlisting} 
-\vspace{0.75cm}\textbf{Diet Collection}
-\begin{lstlisting}[language=json]
-{
-  "userId": ObjectId("6670a844f76a17517b8b39ec"),
-  "forDate": ISODate("1970-01-01"),
-  "meals": [
-    {
-      "name": "BREAKFAST|LUNCH|DINNER",
-      "size": "LIGHT|MEDIUM|HEAVY",
-      "time": ISODate("1970-01-01T00:00:00Z")
-    }
-  ],
-  "food": [
-    {
-      "name": "FOOD_NAME",
-      "calories": 999.99,
-      "quantity": 1,
-      "consumed": ISODate("1970-01-01T00:00:00Z")
-    }
-  ],
-  "drinks": [
-    {
-      "name": "WATER|JUICE|SODA",
-      "calories": 999.99,
-      "glasses": 1,
-      "consumed": ISODate("1970-01-01T00:00:00Z")
-    }
-  ]
-}
-\end{lstlisting} 
-\vspace{0.75cm}\textbf{Workout Collection}
+\pagebreak
+\textbf{Workout Collection}
 \begin{lstlisting}[language=json]
 {
   "_id": ObjectId("6670ae6df76a17517b8b39fa")
@@ -763,29 +734,6 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
       "occuredAt": ISODate("1970-01-01T00:00:00Z")
     }
   ]
-}
-\end{lstlisting} 
-\pagebreak
-\vspace{0.75cm}\textbf{Movement Collection}
-\begin{lstlisting}[language=json]
-{
-  "_id": ObjectId("6670b084f76a17517b8b3a01"),
-  "userId": ObjectId("6670a844f76a17517b8b39ec"),
-  "movement": [
-    {
-      "interval": "HOURLY|DAILY",
-      "distance": 999.99,
-      "calories": 999.99,
-      "stairs": 0,
-      "steps": 0,
-      "pace": "WALKED|RAN|JOGGED",
-      "time": ISODate("1970-01-01:00:00:00Z")
-    }
-  ],
-  "total_calories": 999.99,
-  "total_distance": 999.99,
-  "total_steps": 0,
-  "total_stairs": 0
 }
 \end{lstlisting} 
 \vspace{0.75cm}\textbf{Goal Collection}
@@ -813,6 +761,68 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
     {
       "id": ObjectId("6670b084f76a17517b8b3a01"),
       "type": "MOVEMENT|HEALTH|WORKOUT"
+    }
+  ]
+}
+\end{lstlisting} 
+\pagebreak
+\textbf{Movement Collection}
+\begin{lstlisting}[language=json]
+{
+  "_id": ObjectId("6670b084f76a17517b8b3a01"),
+  "userId": ObjectId("6670a844f76a17517b8b39ec"),
+  "hourly": [
+  {
+      "distance": 999.99,
+      "calories": 999.99,
+      "stairs": 0,
+      "steps": 0,
+      "pace": "WALKED|RAN|JOGGED",
+      "time": ISODate("1970-01-01:00:00:00Z")
+    }
+  ]
+  "daily": [
+    {
+      "distance": 999.99,
+      "calories": 999.99,
+      "stairs": 0,
+      "steps": 0,
+      "pace": "WALKED|RAN|JOGGED",
+      "time": ISODate("1970-01-01:00:00:00Z")
+    }
+  ],
+  "total_calories": 999.99,
+  "total_distance": 999.99,
+  "total_steps": 0,
+  "total_stairs": 0
+}
+\end{lstlisting} 
+\textbf{Diet Collection}
+\begin{lstlisting}[language=json]
+{
+  "userId": ObjectId("6670a844f76a17517b8b39ec"),
+  "forDate": ISODate("1970-01-01"),
+  "meals": [
+    {
+      "name": "BREAKFAST|LUNCH|DINNER",
+      "size": "LIGHT|MEDIUM|HEAVY",
+      "time": ISODate("1970-01-01T00:00:00Z")
+    }
+  ],
+  "food": [
+    {
+      "name": "FOOD_NAME",
+      "calories": 999.99,
+      "quantity": 1,
+      "consumed": ISODate("1970-01-01T00:00:00Z")
+    }
+  ],
+  "drinks": [
+    {
+      "name": "WATER|JUICE|SODA",
+      "calories": 999.99,
+      "glasses": 1,
+      "consumed": ISODate("1970-01-01T00:00:00Z")
     }
   ]
 }
