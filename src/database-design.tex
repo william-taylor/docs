@@ -77,7 +77,7 @@
 \textbf{Personal Information}
 \newline \newline Assumptions:
 \begin{itemize}
-    \item I've assumed that the schema doesn't need to support a broad list of genders and therefore it’s stored as an attribute on the $User$ relation rather split into its own relation.
+    \item I've assumed that the schema doesn't need to support a broad list of genders and therefore it's stored as an attribute on the $User$ relation rather than split into its own relation.
 \end{itemize}
 \begin{schema}{User}
 	\underline{userId}: UserIdType \\
@@ -129,35 +129,35 @@
   \item Calories should only be stored for food and drinks and not for meals. 
 \end{itemize}
 \begin{schema}{Diet}
-    \underline{dietId}: DietId \\
-    forDate: DateType \\
-    userId: UserIdType \\
+  \underline{dietId}: DietIdType \\
+  forDate: DateType \\
+  userId: UserIdType \\
 \end{schema}
 \vspace{-0.75cm}
 \begin{schema}{Meal}
-	\underline{mealId}: MealId \\
-    dietId: DietId \\
-    mealType: MealType \\
-    mealSize: SizeType \\
-    mealTime: TimeType \\
+	\underline{mealId}: MealIdType \\
+  dietId: DietIdType \\
+  mealType: MealType \\
+  mealSize: SizeType \\
+  mealTime: TimeType \\
 \end{schema}
 \vspace{-0.75cm}
 \begin{schema}{Food}
-	\underline{foodId}: FoodId \\
-    dietId: DietId \\
-    foodName: FoodNameType \\
-    calories: CaloriesType \\
-    quantity: \nat_1 \\
-    consumedAt: TimeType \\
+	\underline{foodId}: FoodIdType \\
+  dietId: DietId \\
+  foodName: FoodNameType \\
+  calories: CaloriesType \\
+  quantity: \nat_1 \\
+  consumedAt: TimeType \\
 \end{schema}
 \vspace{-0.75cm}
 \begin{schema}{Drink}
-	\underline{drinkId}: DrinkId \\
-    dietId: DietId \\
-    drinkType: DrinkType \\
-    calories: CaloriesType \\
-    glasses: \nat_1 \\
-    consumedAt: TimeType \\
+	\underline{drinkId}: DrinkIdType \\
+  dietId: DietId \\
+  drinkType: DrinkType \\
+  calories: CaloriesType \\
+  glasses: \nat_1 \\
+  consumedAt: TimeType \\
 \end{schema}
 \begin{zed}
 \textcolor{red}{PK}(Diet) = \{ dietId \} \\
@@ -211,7 +211,7 @@
 \newline \newline Assumptions:
 \begin{itemize}
   \item That we want to store daily and hourly movement data in separate relations to avoid overlapping meaning and more easily apply constraints to validate data consistency.
-  \item That each piece of movement should be captured for each given pace.
+  \item That each piece of movement data should be captured for each given pace.
 \end{itemize}
 \begin{schema}{DailyMovement}
     \underline{dailyMovementId}: DailyMovementIdType \\
@@ -245,43 +245,43 @@
 \textbf{Personal Goals}
 \newline \newline Assumptions:
 \begin{itemize}
-  \item I've assumed that goal status does not have a pending state and made sense to have a separate relation for tracking goal outcome as no intermediate state needed to be stored. 
+  \item I've assumed that goal status does not have a pending state so it made sense to have a separate relation for tracking goal outcome as no intermediate state needed to be stored. 
   \item That we want attributes per evidence type so we can apply foreign key constraints ensuring data integrity.
   \item That any message sent to the user regarding a goal will have multiple properties so it made sense to have its own relation and open the door to multiple messages being sent for a goal.
 \end{itemize}
 \begin{schema}{Goal}
-	\underline{goalId}: GoalId \\
-    userId: UserIdType \\
-    startOn: DateTimeType \\
-    endAt: DateTimeType \\ 
-    description: DescriptionType \\
-    objective: ObjectiveType \\
-    measurement: MeasurementType \\
-    target: TargetType \\ 
+	\underline{goalId}: GoalIdType \\
+  userId: UserIdType \\
+  startOn: DateTimeType \\
+  endAt: DateTimeType \\ 
+  description: DescriptionType \\
+  objective: ObjectiveType \\
+  measurement: MeasurementType \\
+  target: TargetType \\ 
 \end{schema}
 \vspace{-0.75cm}
 \begin{schema}{GoalOutcome}
-	\underline{outcomeId}: OutcomeId \\
-    goalId: GoalId \\
-    status: Status \\
-    achievedAt: DateTimeType \\
+	\underline{outcomeId}: OutcomeIdType \\
+  goalId: GoalIdType \\
+  status: Status \\
+  achievedAt: DateTimeType \\
 \end{schema}
 \vspace{-0.75cm}
 \begin{schema}{GoalMessage}
-	\underline{messageId}: MessageId \\
-    goalId: OutcomeId \\
-    subject: SubjectType \\
-    message: MessageType \\
-    sentAt: DateTimeType \\
+	\underline{messageId}: MessageIdType \\
+  goalId: OutcomeIdType \\
+  subject: SubjectType \\
+  message: MessageType \\
+  sentAt: DateTimeType \\
 \end{schema}
 \vspace{-0.75cm}
 \begin{schema}{GoalEvidence}
-	\underline{evidenceId}: EvidenceId \\
-    goalId: GoalId \\
-    dailyMovementId: DailyMovementIdType \\
-    hourlyMovementId: HourlyMovementIdType \\
-    healthMetricsId: MetricIdType \\
-    workoutSessionId: SessionIdType \\
+	\underline{evidenceId}: EvidenceIdType \\
+  goalId: GoalIdType \\
+  dailyMovementId: DailyMovementIdType \\
+  hourlyMovementId: HourlyMovementIdType \\
+  healthMetricsId: MetricIdType \\
+  workoutSessionId: SessionIdType \\
 \end{schema}
 
 \begin{zed}
@@ -304,11 +304,11 @@
 
 I designed the schema to be in 3NF and have not, at this stage, applied any denormalisation to increase performance at the expense of increasing redundancy. However, to create the schema in 3NF and validate that it is, I first had to ensure it met the rules for 1NF and 2NF. \\
 \newline
-I've ensured the schema is in 1NF by identifying and removing repeating groups and ensuring each attribute in each relation contains only a single value. This can be seen in the relations created for storing $Diet Data$; rather than our $Diet$ relation having a set of food ids $\power FoodIdType$ or meal ids $\power MealIdType$, I choose an alternative design. $Food$, $Drink$ and $Meal$ all have an attribute that acts as a foreign key to the daily Diet entry, removing the need to store this information in the $Diet$ relation, ensuring that each attribute stored in the relation is a single atomic value keeping the schema in 1NF. \\
+I've ensured the schema is in 1NF by identifying and removing repeating groups and ensuring each attribute in each relation contains only a single value. This can be seen in the relations created for storing $Diet\ Data$; rather than our $Diet$ relation having a set of food ids $\power FoodIdType$ or meal ids $\power MealIdType$, I choose an alternative design. $Food$, $Drink$ and $Meal$ all have an attribute that acts as a foreign key to the daily Diet entry, removing the need to store this information in the $Diet$ relation, ensuring that each attribute stored in the relation is a single atomic value keeping the schema in 1NF. \\
 \newline
-With 1NF achieved across each relation in the schema, I could then move on to 2NF, where I needed to remove any partial dependencies from the schema by moving them into their own relation. This can be seen in the relations created for Gym Performance Data. The exercise name could have been stored as an attribute in $WorkoutSession$ and was in the initial design. However, this would have introduced a partial dependency as $exerciseName$ is not dependent on the primary key of $WorkoutSession$ $sessionId$. By moving it out into its own relation $Exercise$ with its own primary key $exerciseId$, we were able to upgrade the design to be 2NF as $exerciseName$ is now dependent on $exerciseId$ and not partially dependent on $sessionId$. \\
+With 1NF achieved across each relation in the schema, I could then move on to 2NF, where I needed to remove any partial dependencies from the schema by moving them into their own relation. This can be seen in the relations created for $Gym\ Performance\ Data$. The exercise name could have been stored as an attribute in $WorkoutSession$ and was in the initial design. However, this would have introduced a partial dependency as $exerciseName$ is not dependent on the primary key of $WorkoutSession$ $sessionId$. By moving it out into its own relation $Exercise$ with its own primary key $exerciseId$, we were able to upgrade the design to be 2NF as $exerciseName$ is now dependent on $exerciseId$ and not partially dependent on $sessionId$. \\
 \newline
-Finally, with 1NF and 2NF achieved, I could test the schema is in 3NF and where it wasn't, make it so, by removing transitive dependencies for non-primary key attributes. This can be seen in the relations created for tracking a user's Personal Goals. In the original design, all the main attributes were stored in a single relation $Goal$, one of which was a foreign key to the user to which the goal was tied. However, this design had transitive dependencies as attributes relating to a goal's outcome; the message sent to the user and any evidence supporting the goal were transitively dependent on $goalId$. We removed these transitive dependencies by moving related attributes into their own relations, $GoalOutcome$, $GoalEvidence$, and $GoalMessage$, ensuring the schema was in 3NF. \\
+Finally, with 1NF and 2NF achieved, I could test the schema is in 3NF and where it wasn't, make it so, by removing transitive dependencies for non-primary key attributes. This can be seen in the relations created for tracking a user's $Personal\ Goals$. In the original design, all the main attributes were stored in a single relation $Goal$, one of which was a foreign key to the user to which the goal was tied. However, this design had transitive dependencies as attributes relating to a goal's outcome; the message sent to the user and any evidence supporting the goal were transitively dependent on $goalId$. We removed these transitive dependencies by moving related attributes into their own relations, $GoalOutcome$, $GoalEvidence$, and $GoalMessage$, ensuring the schema was in 3NF. \\
 
 \subsection*{\small c)}
 \textbf{\small{C1}}
@@ -330,7 +330,7 @@ Finally, with 1NF and 2NF achieved, I could test the schema is in 3NF and where 
 \end{zed}
 \textbf{\small{C4}}
 \begin{zed}
-\forall o: GoalOutcome @ \\
+\forall o: GoalOutcome | o.status \in \{ Success, Failure \} @ \\
 \t1 \exists e: GoalEvidence | e.goalId = o.goalId @ \\
 \t2 \{ h: HourlyMovement | e.hourlyMovementId = h.hourlyMovementId \} \neq \emptyset \lor \\
 \t2 \{ d: DailyMovement | e.dailyMovementId = d.dailyMovementId \} \neq \emptyset \lor \\
@@ -339,20 +339,20 @@ Finally, with 1NF and 2NF achieved, I could test the schema is in 3NF and where 
 \end{zed}
 \textbf{\small{Additional Constraints}}
 \begin{itemize}
-  \item For {\em Diet Data} it would make sense to introduce constraints to ensure we never have more than one entry per day for each user. It would also make sense to enforce that glasses / quantity should never be less than one for each $Food$ and $Drink$ entry.
-  \item For {\em Personal Goals} there are additional fields that should be consistent with each other. It would make sense to add a constraint to make sure a $GoalOutcome$ is only achieved during the goal period and that a $GoalMessage$ can only be stored when a $GoalOutcome$ has been recorded for the goal.
-  \item For {\em Movement Data} it would make sense to introduce constraints to make sure there is never more than one entry, per pace, per user for each $DailyMovement$ entry and there shouldn't be more than 24 entries per user, per pace for each $HourlyMovement$. 
-  \item For {\em Gym Performance Data} it would make sense to introduce constraints that make sure $numberOfSets$ and $repititionsPerSet$ is never less than one and that each $Workout$ should be associate with at least one $WorkoutSession$.
+  \item For {\em Diet Data} it would make sense to introduce constraints to ensure we never have more than one entry in $Diet$ per day for each user. It would also make sense to enforce that glasses / quantity should never be less than one for each $Food$ and $Drink$ entry.
+  \item For {\em Personal Goals} there are additional fields that should be consistent with each other. It would make sense to add a constraint to make sure a $GoalOutcome$ is only achieved during the goal period and that a $GoalMessage$ can only be stored/sent when a $GoalOutcome$ has been recorded for the goal.
+  \item For {\em Movement Data} it would make sense to introduce constraints to make sure there is never more than 1 entry, per pace, per user, per date in the $DailyMovement$ relation and there shouldn't be more than 24 entries per user, per pace, per date in the $HourlyMovement$ relation. 
+  \item For {\em Gym Performance Data} it would make sense to introduce constraints that make sure $numberOfSets$ and $repititionsPerSet$ is never less than one and that each $Workout$ should be associated with at least one $WorkoutSession$.
   \item For {\em Personal Information} making $emailAddress$ unique would be a good constraint as well.
 \end{itemize}
 
 \subsection*{\small d)}
 
-Firstly, I would like to clarify the nature of the data we will store and its limits. What would we be storing precisely? Is weight in kilograms? How many decimal places should we support? Do client applications convert into imperial units if that’s the user’s preference? Getting answers to these questions will be vital so we can translate attributes into SQL column types that support these scenarios and optimise the underlying storage needs of our schema for only what is needed. It would also make sense to ask for clarifications about the relationships between datasets. Will we only send a single message when a user’s goal has succeeded or failed? Answers to questions like these will enable us to evaluate what relations need to be normalised to support one-to-many relationships. \\
+Firstly, I would like to clarify the nature of the data we will store and its limits. What would we be storing precisely? Is weight in kilograms? How many decimal places should we support? Do client applications convert into imperial units if that's the user's preference? Getting answers to these questions will be vital to ensuring we capture all required attributes and translate them into appropriate SQL types that support these scenarios and optimise the underlying storage needs of our schema. It would also make sense to ask for clarifications about the relationships between datasets. Will we only send a single message when a user's goal has succeeded or failed? These answers will enable us to evaluate if any additional relations are needed and what their relationship will be with other relations in our schema, such as one-to-one and one-to many. \\
 \newline
-Secondly, I want to gain additional insights into how this data will be queried. What are some typical user actions that may take place through the mobile app? What data will they want to see? This will clarify what indexes we want to apply across our schema. Each index will have a cost, impacting writes and increasing storage requirements, so we must use them sensibly. Identifying attributes we will join, filter, or aggregate would give us an initial set of fields to consider and allow us to determine the best type of index to apply for each scenario. For example, applying a clustered index on an attribute we use in a range query or a regular index for an attribute we filter by is selected regularly. \\
+Secondly, I would want to gain additional insights into how this data will be queried. What are some typical user actions that may take place through the mobile app? What data will they want to see? This will clarify what indexes we want to apply across our schema. Each index will have a cost, impacting writes and increasing storage requirements, so we must use them sensibly. Identifying attributes we will join, filter, or aggregate would give us an initial set of fields to consider and allow us to determine the best type of index to apply for each scenario. For example, applying a clustered index on an attribute we use in a range query or a regular index for an attribute we filter by and select regularly. \\
 \newline
-Finally, I would ask questions about the required performance levels or expected scalability needs.  How many reads will we need to support? Might we need to look at read replicas to help boost read speeds, vertically scale the database or potentially denormalise our design? How much data will we store, how many users do we need to support, and would it make sense to split data from users and data collected from sensors into separate database instances to partition high write traffic? Answers to these questions will fundamentally impact the design and implementation of our relational model. \\
+Finally, I would ask questions about the required performance levels or expected scalability needs. How many reads will we need to support? Might we need to look at read replicas to help boost read speeds, vertically scale the database or potentially denormalise our design? How much data will we store, how many users do we need to support, and would it make sense to split data from users and data collected from sensors into separate database instances to partition high write traffic? Answers to these questions will fundamentally impact the design and implementation of our relational model. \\
 \pagebreak
 
 \section*{Q2}
@@ -386,7 +386,7 @@ D == Project\{achievedAt.year, achievedAt.month, goalId\}(C) \\
 E == D\ GroupBy(Count(goalId)\ as\ metPerMonth) \\
 F == Project\{year, metPerMonth\}(E) \\
 G == F\ GroupBy(Max(metPerMonth)\ as\ maxGoalsMet) \\
-H == Join(F, G) \\ 
+H == Join(E, G) \\ 
 I == Restrict\{maxGoalsMet = metPerMonth\}(H) \\
 J == Project\{month\}(I) \\
 \end{zed}
@@ -421,7 +421,7 @@ CREATE Table User (
 
 CREATE TABLE HealthReading (
   readingId INT AUTO_INCREMENT PRIMARY KEY,
-  readAt TIMESTAMP NOT NULL,
+  readAt DATETIME NOT NULL,
   userId INT NOT NULL,
   FOREIGN KEY (userId) REFERENCES User(userId)
 );
@@ -429,10 +429,10 @@ CREATE TABLE HealthReading (
 CREATE TABLE HealthMetrics (
   metricsId INT AUTO_INCREMENT PRIMARY KEY,
   readingId INT NOT NULL,
-  weight DECIMAL(5, 2) NOT NULL,
-  glucoseLevel DECIMAL(5, 2) NOT NULL,
-  systolicBloodPressure INT NOT NULL,
-  diastolicBloodPressure INT NOT NULL,
+  weight DECIMAL(5, 2),
+  glucoseLevel DECIMAL(5, 2),
+  systolicBloodPressure INT,
+  diastolicBloodPressure INT,
   FOREIGN KEY (readingId) REFERENCES HealthReading(readingId)
 );
 
@@ -558,11 +558,11 @@ CREATE TABLE GoalEvidence (
   goalId INT NOT NULL,
   dailyMovementId INT,
   hourlyMovementId INT,
-  healthReadingId INT,
+  healthMetricsId INT,
   workoutSessionId INT,
   FOREIGN KEY (dailyMovementId) REFERENCES DailyMovement(dailyMovementId),
   FOREIGN KEY (hourlyMovementId) REFERENCES HourlyMovement(hourlyMovementId),
-  FOREIGN KEY (healthReadingId) REFERENCES HealthReading(readingId),
+  FOREIGN KEY (healthMetricsId) REFERENCES HealthMetrics(metricsId),
   FOREIGN KEY (workoutSessionId) REFERENCES WorkoutSession(sessionId)
 );
 \end{lstlisting}
@@ -684,11 +684,11 @@ GROUP BY MONTH(date)
 \subsection*{\small a)}
 The MongoDB design is outlined below. I have taken the existing 16 relations and cut them down to 6 collections. From a user's perspective, there are likely to be a relatively small number of writes daily, and therefore, catering to reads and queries spanning multiple days' worth of fitness data should be the priority. \\
 \newline
-In the design, I've strategically employed referencing and embedding patterns to strike a balance between reads and writes favouring reads. Multiple relations have been merged into a single collection, enhancing data access. Embedding data into a single document improves the speed of accessing daily diet, workout, and movement data, as it's all collated in the same document and avoids the need to perform joins or lookups. I've also used the referencing pattern to help maintain write performance where it makes sense. Storing user information in a separate $User$ collection with references kept in other collections to help reduce the document size writing and updates specific sets of data. \\
+In the design, I've strategically employed referencing and embedding patterns to strike a balance between reads and writes favouring reads. Multiple relations have been merged into a single collection, enhancing data access. Embedding data into a single document improves the speed of accessing daily diet, workout, and movement data, as it's all collated in the same document and avoids the need to perform joins or lookups. I've also used the referencing pattern to help maintain write performance where it makes sense. Storing user information in a separate $User$ collection with references kept in other collections to help reduce the document size when writing and updates specific sets of data. \\
 \newline
 I've leveraged various other design patterns to enhance read speeds and provide additional capabilities in the design. I've used the bucket design pattern on the $Diet$ and $Movement$ collections to store this data by date with all related information embedded, enabling more performant aggregation queries. The extended reference pattern is used for the storage of goal evidence, allowing us to store a subset of the data we're interested in in the $Goal$ collection, eliminating the need for lookups across multiple collections. Finally, I've added summary fields to the $Movement$ collection that can be sourced via the computed pattern, providing precalculated summaries to the application, reducing CPU workload and increasing application performance. \\
 \newline
-Using these patterns optimizes reads at the expense of writes. Less referencing makes it harder to update pieces of daily data individually, and embedding means that regardless of whether you need all the data in the document, you will get it anyway. However, the design patterns here should help find a healthy balance, given the application's need to display and capture daily fitness data. \\
+Using these patterns optimises reads at the expense of writes. Less referencing makes it harder to update pieces of daily data individually, and embedding means that regardless of whether you need all the data in the document, you will get it anyway. However, the design patterns here should help find a healthy balance, given the application's need to display and capture daily fitness data. \\
 \newline
 \hspace{-0.0cm}\textbf{User Collection}
 \begin{lstlisting}[language=json]
@@ -790,8 +790,7 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
       "calories": 999.99,
       "stairs": 0,
       "steps": 0,
-      "pace": "WALKED|RAN|JOGGED",
-      "date": ISODate("1970-01-01:00:00:00Z")
+      "pace": "WALKED|RAN|JOGGED"
     }
   ],
   "total_calories": 999.99,
@@ -830,7 +829,7 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
 \end{lstlisting} 
 \pagebreak
 \subsection*{\small b)}
-I've provided the below queries as aggregation pipelines to get as close as possible to the result asked for in the question as I wouldn't be able to project or group with a regular MongoDB query. Like previous queries {\em @currentUserId} represents id of the current user we are running the query for. \\
+I've provided the below queries as aggregation pipelines to get as close as possible to the result asked for in the question as I wouldn't be able to project or group with a basic MongoDB query. Like previous queries {\em @currentUserId} represents id of the current user we are running the query for. \\
 \newline
 \hspace{0cm}\textbf{1.}
 \begin{lstlisting}[language=json]
@@ -933,8 +932,8 @@ I've provided the below queries as aggregation pipelines to get as close as poss
     "$match": {
       "userId": ObjectId("@currentUserId"),
       "forDate": {
-        "$gte": new ISODate("2023-01-01T00:00:00Z"),
-        "$lt": new ISODate("2024-01-01T00:00:00Z")
+        "$gte": ISODate("2023-01-01T00:00:00Z"),
+        "$lt": ISODate("2024-01-01T00:00:00Z")
       }
     }
   },
@@ -973,7 +972,7 @@ I've provided the below queries as aggregation pipelines to get as close as poss
 
 \subsection*{\small c)}
 
-There are significant differences between MongoDB and a traditional relational database that impact which to choose when deciding what to use when building an application.\\
+There are significant differences between MongoDB and a traditional relational database that impacts which to choose when deciding what to use when building an application.\\
 \newline
 One of the most significant differentiating factors is data integrity and consistency. MongoDB offers flexible schemas that don't need to be declared in advance and validated when inserting documents, which is great for storing unstructured data or models that rapidly change. For relational databases, table columns have defined types to which rows inserted must conform. They also strengthen this capability by allowing users to declare assertions through check constraints and triggers that can add guards against malformed or inconsistent data, running checks when data is inserted, updated, or deleted to ensure integrity and consistency are not compromised. \\
 \newline
