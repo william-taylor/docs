@@ -335,7 +335,7 @@ Finally, with 1NF and 2NF achieved, I could test the schema is in 3NF and where 
 \t2 \{ h: HourlyMovement | e.hourlyMovementId = h.hourlyMovementId \} \neq \emptyset \lor \\
 \t2 \{ d: DailyMovement | e.dailyMovementId = d.dailyMovementId \} \neq \emptyset \lor \\
 \t2 \{ s: WorkoutSession | e.workoutSessionId = s.sessionId \} \neq \emptyset \lor \\
-\t2 \{ r: HealthReading | e.healthReadingId = r.readingId \} \neq \emptyset \lor \\
+\t2 \{ m: HealthMetrics | e.healthMetricsId = m.metridId \} \neq \emptyset \lor \\
 \end{zed}
 \textbf{\small{Additional Constraints}}
 \begin{itemize}
