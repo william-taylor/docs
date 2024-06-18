@@ -583,7 +583,8 @@ FOR EACH ROW
 BEGIN
     IF (
         (NEW.calories, NEW.distance, NEW.stairs, NEW.steps) <> (
-            SELECT SUM(calories), SUM(distance), SUM(stairs), SUM(steps) 
+            SELECT COALESCE(SUM(calories), 0), COALESCE(SUM(distance), 0), 
+              COALESCE(SUM(stairs), 0), COALESCE(SUM(steps), 0) 
             FROM HourlyMovement
             WHERE userId = NEW.userId and pace = NEW.pace and date = NEW.date
         )
@@ -599,7 +600,7 @@ BEFORE INSERT ON Goal
 FOR EACH ROW
 BEGIN
     IF (
-      3 < (
+      3 <= (
         SELECT COUNT(*) 
         FROM Goal 
         WHERE NEW.userId = userId AND NEW.endAt >= startOn AND NEW.startOn <= endAt
@@ -623,7 +624,7 @@ BEGIN
               dailyMovementId IS NOT NULL OR 
               hourlyMovementId IS NOT NULL OR 
               workoutSessionId IS NOT NULL OR 
-              healthReadingId IS NOT NULL
+              healthMetricsId IS NOT NULL
             )
         )
     ) THEN
@@ -642,14 +643,22 @@ SELECT DAY(date) as 'day'
 FROM DailyMovement 
 WHERE userId = @currentUserId AND 
   YEAR(date) = 2023 AND MONTH(date) = 2 AND 
-  distance >= 1 AND pace in ('Walked', 'Ran')
+  distance > 1 AND pace in ('Walked', 'Ran')
 \end{lstlisting}
 \textbf{\small{2.}}
 \begin{lstlisting}[language=sql]
-SELECT goalId, userId, startOn, endAt, description, objective, measurement, target
+SELECT 
+  goalId, 
+  userId, 
+  startOn, 
+  endAt, 
+  description, 
+  objective, 
+  measurement, 
+  target
 FROM Goal 
 WHERE userId = @currentUserId AND 
-  startOn  <= '2023-01-31' AND 
+  startOn < '2023-02-01' AND 
   endAt >= '2023-01-01'
 \end{lstlisting}
 \textbf{\small{3.}}
