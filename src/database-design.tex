@@ -771,6 +771,7 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
 {
   "_id": ObjectId("6670b084f76a17517b8b3a01"),
   "userId": ObjectId("6670a844f76a17517b8b39ec"),
+  "forDate": ISODate("1970-01-01"),
   "hourly": [
   {
       "distance": 999.99,
@@ -788,7 +789,7 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
       "stairs": 0,
       "steps": 0,
       "pace": "WALKED|RAN|JOGGED",
-      "time": ISODate("1970-01-01:00:00:00Z")
+      "date": ISODate("1970-01-01:00:00:00Z")
     }
   ],
   "total_calories": 999.99,
@@ -829,33 +830,57 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
 \end{lstlisting} 
 \pagebreak
 \subsection*{\small b)}
-
-% Query 1 % 
+For the below queries, @currentUserId represents id of the current user we are running the query for. \\
+\newline
 \hspace{0cm}1.
 \begin{lstlisting}[language=json]
-{
-    "query": 100
-} 
+{ 
+  "userId": ObjectId("@currentUserId"), 
+  "daily.distance": { "$gt": 1 }, 
+  "daily.pace": "WALKED",
+  "forDate": {
+    "$gte": ISODate("2023-02-01T00:00:00Z"),
+    "$lt": ISODate("2023-03-01T00:00:00Z")
+  }
+}
 \end{lstlisting} 
-% Query 2 % 
 \hspace{0cm}2.
 \begin{lstlisting}[language=json]
-{                   
-    "query": 100
+{
+  "userId": ObjectId("@currentUserId"),
+  "$or": [
+    {
+      "startOn": {
+        "$lt": ISODate("2023-02-01T00:00:00Z")
+      }
+    },
+    {
+      "endAt": {
+        "$gte": ISODate("2023-01-01T00:00:00Z")
+      }
+    }
+  ]
 }
 \end{lstlisting}
-% Query 3 % 
 \hspace{0cm}3. 
 \begin{lstlisting}[language=json]
 {
-    "query": 100
+  "userId": ObjectId("@currentUserId"),
+  "outcome.status": "success",
+  "outcome.achievedAt": {
+    $gte: ISODate("2023-01-01T00:00:00Z"),
+    $lt: ISODate("2024-01-01T00:00:00Z")
+  }
 }
 \end{lstlisting}
-% Query 4 % 
 \hspace{0cm}4. 
 \begin{lstlisting}[language=json]
 {
-    "query": 100
+  "userId": ObjectId("@currentUserId"),
+  "daily.date": {
+    $gte: ISODate("2023-01-01T00:00:00Z"),
+    $lt: ISODate("2024-01-01T00:00:00Z")
+  }
 }
 \end{lstlisting}
 
