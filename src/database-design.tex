@@ -793,9 +793,7 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
     }
   ],
   "total_calories": 999.99,
-  "total_distance": 999.99,
-  "total_steps": 0,
-  "total_stairs": 0
+  "total_distance": 999.99
 }
 \end{lstlisting} 
 \textbf{Diet Collection}
@@ -868,8 +866,8 @@ For the below queries, @currentUserId represents id of the current user we are r
   "userId": ObjectId("@currentUserId"),
   "outcome.status": "success",
   "outcome.achievedAt": {
-    $gte: ISODate("2023-01-01T00:00:00Z"),
-    $lt: ISODate("2024-01-01T00:00:00Z")
+    "$gte": ISODate("2023-01-01T00:00:00Z"),
+    "$lt": ISODate("2024-01-01T00:00:00Z")
   }
 }
 \end{lstlisting}
@@ -878,8 +876,8 @@ For the below queries, @currentUserId represents id of the current user we are r
 {
   "userId": ObjectId("@currentUserId"),
   "daily.date": {
-    $gte: ISODate("2023-01-01T00:00:00Z"),
-    $lt: ISODate("2024-01-01T00:00:00Z")
+    "$gte": ISODate("2023-01-01T00:00:00Z"),
+    "$lt": ISODate("2024-01-01T00:00:00Z")
   }
 }
 \end{lstlisting}
