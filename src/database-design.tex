@@ -634,13 +634,13 @@ END;
 
 \pagebreak 
 \subsection*{\small c)}
-For these queries there is a {\em @userId} parameter assumed to be available to tailor the query to a given user. \\
+For these queries there is a {\em @currentUserId} parameter assumed to be available to tailor the query to a given user. \\
 \newline
 \textbf{\small{1.}}
 \begin{lstlisting}[language=sql]
 SELECT DAY(date) as 'day'
 FROM DailyMovement 
-WHERE userId = @userId AND 
+WHERE userId = @currentUserId AND 
   YEAR(date) = 2023 AND MONTH(date) = 2 AND 
   distance >= 1 AND pace in ('Walked', 'Ran')
 \end{lstlisting}
@@ -648,7 +648,7 @@ WHERE userId = @userId AND
 \begin{lstlisting}[language=sql]
 SELECT goalId, userId, startOn, endAt, description, objective, measurement, target
 FROM Goal 
-WHERE userId = @userId AND 
+WHERE userId = @currentUserId AND 
   startOn  <= '2023-01-31' AND 
   endAt >= '2023-01-01'
 \end{lstlisting}
@@ -657,7 +657,9 @@ WHERE userId = @userId AND
 SELECT MONTH(o.achievedAt) as 'month'
 FROM Goal g
 INNER JOIN GoalOutcome o ON g.goalId = o.goalId
-WHERE YEAR(o.achievedAt) = 2023 AND g.userId = @userId
+WHERE YEAR(o.achievedAt) = 2023 AND 
+  g.userId = @currentUserId AND 
+  o.status = 'Success'
 GROUP BY MONTH(o.achievedAt)
 ORDER BY COUNT(g.goalId) DESC
 LIMIT 1
@@ -670,7 +672,7 @@ SELECT
 FROM (
   SELECT date, SUM(calories) 'totalDaily'
   FROM  DailyMovement 
-  WHERE YEAR(date) = 2023 and userId = @userId
+  WHERE YEAR(date) = 2023 and userId = @currentUserId
   GROUP BY date
 ) T
 GROUP BY MONTH(date)
@@ -828,58 +830,143 @@ Using these patterns optimizes reads at the expense of writes. Less referencing 
 \end{lstlisting} 
 \pagebreak
 \subsection*{\small b)}
-For the below queries, @currentUserId represents id of the current user we are running the query for. \\
+I've provided the below queries as aggregation pipelines to get as close as possible to the result asked for in the question as I wouldn't be able to project or group with a regular MongoDB query. Like previous queries {\em @currentUserId} represents id of the current user we are running the query for. \\
 \newline
-\hspace{0cm}1.
+\hspace{0cm}\textbf{1.}
 \begin{lstlisting}[language=json]
-{ 
-  "userId": ObjectId("@currentUserId"), 
-  "daily.distance": { "$gt": 1 }, 
-  "daily.pace": "WALKED",
-  "forDate": {
-    "$gte": ISODate("2023-02-01T00:00:00Z"),
-    "$lt": ISODate("2023-03-01T00:00:00Z")
-  }
-}
-\end{lstlisting} 
-\hspace{0cm}2.
-\begin{lstlisting}[language=json]
-{
-  "userId": ObjectId("@currentUserId"),
-  "$or": [
-    {
-      "startOn": {
-        "$lt": ISODate("2023-02-01T00:00:00Z")
-      }
-    },
-    {
-      "endAt": {
-        "$gte": ISODate("2023-01-01T00:00:00Z")
+[
+  {
+    "$match": {
+      "userId": ObjectId("@currentUserId"),
+      "forDate": {
+        "$gte": ISODate("2023-02-01T00:00:00Z"),
+        "$lt": ISODate("2023-03-01T00:00:00Z")
+      },
+      "daily.distance": {
+        "$gt": 1
+      },
+      "daily.pace": {
+        "$in": ["WALKED", "RAN" ]
       }
     }
-  ]
-}
-\end{lstlisting}
-\hspace{0cm}3. 
-\begin{lstlisting}[language=json]
-{
-  "userId": ObjectId("@currentUserId"),
-  "outcome.status": "success",
-  "outcome.achievedAt": {
-    "$gte": ISODate("2023-01-01T00:00:00Z"),
-    "$lt": ISODate("2024-01-01T00:00:00Z")
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "day": {
+        "$dayOfMonth": "$forDate"
+      }
+    }
   }
-}
-\end{lstlisting}
-\hspace{0cm}4. 
+]
+\end{lstlisting} 
+\hspace{0cm}\textbf{2.}
 \begin{lstlisting}[language=json]
-{
-  "userId": ObjectId("@currentUserId"),
-  "daily.date": {
-    "$gte": ISODate("2023-01-01T00:00:00Z"),
-    "$lt": ISODate("2024-01-01T00:00:00Z")
+[
+  {
+    "$match": {
+      "userId": ObjectId("@currentUserId"),
+      "$or": [
+        {
+          "startOn": {
+            "$lt": ISODate("2023-02-01T00:00:00Z")
+          }
+        },
+        {
+          "endAt": {
+            "$gte": ISODate("2023-01-01T00:00:00Z")
+          }
+        }
+      ]
+    }
   }
-}
+]
+\end{lstlisting}
+\pagebreak
+\hspace{0cm}\textbf{3.} 
+\begin{lstlisting}[language=json]
+[
+  {
+    "$match": {
+      "userId": ObjectId("@currentUserId"),
+      "outcome.status": "SUCCESS",
+      "outcome.achievedAt": {
+        "$gte": ISODate("2023-01-01T00:00:00.000Z"),
+        "$lt": ISODate("2024-01-01T00:00:00.000Z")
+      }
+    }
+  },
+  {
+    "$group" {
+      "_id": {
+        "$dateToString": {
+          "format": "%m",
+          "date": "$outcome.achievedAt"
+        }
+      },
+      "count": {
+        "$sum": 1
+      }
+    }
+  },
+  {
+    "$sort": {
+      "count": -1
+    }
+  },
+  {
+    "$limit": 1
+  },
+  {
+    "$project": {
+      "month": "$_id",
+      "_id": 0
+    }
+  }
+]
+\end{lstlisting}
+\pagebreak
+\hspace{0cm}\textbf{4.}
+\begin{lstlisting}[language=json]
+[
+  {
+    "$match": {
+      "userId": ObjectId("@currentUserId"),
+      "forDate": {
+        "$gte": new ISODate("2023-01-01T00:00:00Z"),
+        "$lt": new ISODate("2024-01-01T00:00:00Z")
+      }
+    }
+  },
+  {
+    "$unwind": "$daily"
+  },
+  {
+    "$group": {
+      "_id": "$forDate",
+      "totalCalories": {
+        "$sum": "$daily.calories"
+      }
+    }
+  },
+  {
+    "$group": {
+      "_id": {
+        "$month": "$_id"
+      },
+      "averageDailyCalories": {
+        "$avg": "$totalCalories"
+      }
+    }
+  },
+  {
+    "$project": {
+      "month": "$_id",
+      "averageDailyCalories": 1,
+      "_id": 0
+    }
+  }
+]
 \end{lstlisting}
 
 \pagebreak
