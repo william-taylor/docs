@@ -1,0 +1,357 @@
+\documentclass{article}
+
+% Packages
+\usepackage{fuzz}
+\usepackage[margin=1.25in]{geometry}
+\usepackage{listings}
+
+% Metadata
+\title{SBM - Assignment}
+\date{\vspace{-1.0cm}18th March 2025}
+
+
+\lstdefinestyle{mystyle}{
+    basicstyle=\ttfamily,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+\maketitle
+
+\pagebreak 
+
+% Question 1
+\section*{Q1}
+
+\pagebreak
+
+% Question 1
+\section*{Q2}
+
+\subsection*{Introduction}
+
+Software based systems can be complex and are often at a scope that is too large for any one developer to fully comprehend. State based modelling is a powerful technique that can help bring order to overloaded complexity through description, refinement and proof that helps establish the fundamental properties and behaviours of stateful systems.
+\newline \newline
+To illustrate the benefits and limitations of state-based modelling in general and the relationship between Z and B, a basic trading system model has been designed for the capture and storage of securities lending trades. These are transactions between parties who wish to borrow or loan a given security in return for a nominal fee and are a critical underpinning of the financial system.
+\newline \newline
+By leveraging this model and with additional support through referenced case studies and papers we aim to illustrate the benefits and limitations of state-based modelling. Furthermore, by navigating from a Z to a B, representation of our trading system, we aim to highlight the shared heritage of both Z notation and the B-Method and how their bespoke differences provide unique opportunities to be leveraged in a variety of scenarios.
+
+\subsection*{State based modelling}
+
+State-based modelling is a technique for describing systems by defining their state, the constraints and guards that apply to that state, and the transitions that states can undergo via operations. Therefore resulting in a comprehensive and structured definition of the system's model and associated behaviours, capabilities, and limitations.
+\newline \newline
+By formally defining state normally through mathematical notation the aim is to remove ambiguities and systematically prove model correctness and consistency as it transitions through various states.  Capturing and resolving errors in model definitions before implementation in a software system improves system safety.
+\newline \newline
+Various methods and tools exist with their own sets of capabilities. Two more popular methods in use in academia and industry are Z notation and the B-Method. They share a common heritage, and both can be leveraged for writing formal specifications. We will use both to highlight the benefits and limitations of each method as well as the common attributes that apply to state-based modelling in general.
+
+\subsection*{Z notation}
+
+Z notation is a formal specification language based on set theory and first-order logic, designed to describe state and associated behaviours with mathematical precision. Initially conceived by Jean Raymond Abrial at the University of Grenoble it was refined in collaboration with the Oxford University Computing Library. Since then, it has found use in industry at IBM, Rolls-Royce and British Aerospace for verifying system specifications.
+\newline \newline
+At the heart of Z is the mathematical language that allows practitioners to work with sets, bags, sequences, types, functions, relations and logic that can then be collected and organised into schemas where declarations are made alongside constraints. These schemas form the basis of how Z can be leveraged to describe the model of a system, not just from describing the state in the system, types of properties and the constraints bound to them but from how the system’s state can transition through local and global operations.
+\newline \newline
+Z is, however, not intended for the description and specification of nonfunctional properties such as usability, performance, security, efficiency, or reliability. Implementation level details on how logic could be concurrently scheduled, or state storage optimised in memory are not the domain of Z. Additional tools can be leveraged to fill that gap and complement the state-based modelling capabilities found in Z.
+
+\subsubsection*{Trading System Model}
+
+The trading system model in Z starts with some helper types. An ‘Identifier’ type for use as a readable unique identifier for trades. A ‘Date’ type has also been created, represented a natural number for easy date comparisons.  Finally, a ‘DateOption’ free type that allows us to express an end date for our trades in an optional manner.
+
+\begin{zed}
+Identifier == Prefix \cross \{ d: \nat | d \geq 1 \land d \leq 9 \} \\ 
+Date == \{ d: \nat | d \geq 20250101 \land d \leq 20991231 \} \\
+DateOption ::= None | Some \ldata Date \rdata \\
+\end{zed}
+
+\hspace{-0.62cm} I've also defined the following free types: Security, Trader and Counterparty that represents the type of security being traded, the trader themselves and the counterparty the trade is with for brevity.  Direction, Status and Prefix have been defined as they are suitable representations for the properties they will represent.
+
+\begin{zed}
+Counterparty ::= Citadel | Millennium  \\
+Direction ::= Borrow | Loan \\
+Security ::= Bond | Stock \\
+Status ::= Open | Closed \\  
+Trader ::= Joe | John | Jane | Joan \\
+Prefix ::= T | U | S | V \\
+\end{zed}
+
+\hspace{-0.62cm} Which now allows us to define our Trade schema which will define our local state, capturing the identifier of the trade and its associated properties. A maximum quantity size 100,000 has been expressed through our constraints in additional adding a guard that when a trade has ended it is marked as Closed. 
+
+\begin{schema}{Trade}
+identifier: Identifier \\
+direction: Direction \\ 
+security: Security \\
+quantity: \nat_1 \\
+startDate: Date \\
+endDate: OptionalDate \\ 
+counterparty: Counterparty \\
+status: Status \\
+owner: Trader \\
+\where
+status = Closed \iff endDate \neq None \\
+quantity \leq 100000 \\
+\end{schema}
+
+\hspace{-0.7cm} Trades are stored in a global state the ‘TradingSystem’ schema which keeps a record of all trades and users who can book them. Critically we introduce a sensible constraint that users cannot be removed from the system while they have Open trades and we have provided a sensible initialisation operation for the system.
+
+\begin{schema}{TradingSystem}
+trades: Identifier \pfun Trade \\
+users: \power Trader \\
+\where
+\forall t: \ran trades | t.status = Open @ t.owner \in users \\ 
+\end{schema}
+
+\begin{schema}{Init}
+TradingSystem \\
+\where
+trades = \emptyset \\
+users = \emptyset \\
+\end{schema}
+
+\hspace{-0.7cm} This brings us onto operations for creating and closing trades starting with ‘CreateTrade’ that enables trades booked to be capture in the system providing they aren’t there already. The operation definition is more verbose than expected due to ProZ’s lack of support for bindings an the large number of properties on the’Trade’.
+
+\begin{schema}{CreateTrade}
+\Delta TradingSystem \\
+t?: Trade \\
+\where 
+(t?).identifier \notin \dom trades \\
+(t?).owner \in users \\
+(t?).status = Open \\ 
+(t?).endDate = None \\
+trades' = trades \cup \{ (t?).identifier \mapsto t? \} \\
+users' = users \\
+\end{schema}
+
+Our other operation is ‘CloseTrade’ which allows the trader to terminate the trade at a date after the start date. This operation has be defined using promotion as one can imagine multiple operations being applicable to an Open trade and this technique provides a clean dividing line between the local state changes for Trade and then how that should propagate to the ‘TradingSystem’.
+
+\begin{schema}{CloseTrade}
+\Delta TradingSystem \\
+i?: Identifier \\
+d?: Date \\ 
+\where
+(i?) \in \dom trades \\
+(trades(i?)).status = Open \\ 
+(trades(i?)).startDate < d? \\
+users' = users \\
+(\{ i? \} \ndres trades') = \{ i? \} \ndres trades \\
+(trades'(i?)).startDate = (trades(i?)).startDate \\
+(trades'(i?)).identifier = (trades(i?)).identifier \\
+(trades'(i?)).direction = (trades(i?)).direction \\
+(trades'(i?)).counterparty = (trades(i?)).counterparty \\
+(trades'(i?)).security = (trades(i?)).security \\
+(trades'(i?)).quantity = (trades(i?)).quantity \\
+(trades'(i?)).owner = (trades(i?)).owner \\
+(trades'(i?)).endDate = Some(d?) \\ 
+(trades'(i?)).status = Closed \\
+\end{schema}
+
+\hspace{-0.7cm} Finally, we have two operations that allow traders to be added to the system and removed. We provide constraints to make sure the user has not been added yet or does exist to be removed and let the constraint for ‘TradingSystem’ enforce the constraint on when a trader can be removed from the system. 
+
+\begin{schema}{AddTrader}
+\Delta TradingSystem \\
+u?: Trader \\ 
+\where
+u? \notin users \\
+users' = users \cup \{ u? \} \\
+trades' = trades \\
+\end{schema}
+
+\begin{schema}{RemoveTrader}
+\Delta TradingSystem \\
+u?: Trader \\ 
+\where
+u? \in users \\
+users' = users \setminus \{ u? \} \\
+trades' = trades \\
+\end{schema}
+
+\subsubsection*{B}
+
+B is another formal method originally developed by Abrial that like Z is based on set theory and first-order logic. The method was developed to address the lack of support in Z for a systematic refinement process to transition to an implementable system. Leveraged as part of the B-Method it saw industry adoption most notably at Alstom and Siemens the design and specification of railway systems.  
+\newline \newline
+B has a lot in common with Z, which will in part been due to Abrial playing a large role in the development of both methods. But at the heart of B specifications are abstract machines where the practitioner can define much of what we could define in Z through defining sets, constants, properties, variables, invariants, initialisation and operations for a given abstract state machine.
+\newline \newline
+The B-method like Z notation before it lacks support for nonfunctional requirements despite being closer to an implementation level description. Like Z, the B-Method is primarily a state-based modelling tool but with greater emphasis on refinement and proof processes. Describing properties outside of this domain will require working with additional tools or formal methods such as Atelier B, Event-B and TLA+ that aim to address these points.
+
+\newpage
+
+\subsubsection*{Trading System Model}
+
+Something...
+
+\begin{lstlisting}
+MACHINE TradingSystem
+   ...
+END
+\end{lstlisting}
+
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+SETS 
+    COUNTERPARTY = { Citadel, Millennium };
+    DIRECTION = { Borrow, Loan };
+    SECURITY = { Bond, Stock };
+    STATUS = { Open, Closed };
+    TRADER = { Joe, John, Jane, Joan };
+    PREFIX = { T, U, S, V }
+\end{lstlisting}
+
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+FREETYPES
+    DATEOPTION = None, Some(DATE)
+\end{lstlisting}
+
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+DEFINITIONS
+    DATE == 20250101..20991231;
+    IDENTIFIER == PREFIX * (1..9);
+    TRADE == struct(
+    identifier: IDENTIFIER, 
+    direction: DIRECTION, 
+    security: SECURITY, 
+    quantity: NAT1, 
+        counterparty: COUNTERPARTY,
+        startDate: DATE, 
+        endDate: DATEOPTION, 
+        status: STATUS, 
+        owner: TRADER 
+    )
+\end{lstlisting}
+
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+VARIABLES
+    trades, users
+\end{lstlisting}
+    
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+INVARIANT
+    trades: IDENTIFIER +-> TRADE
+    &
+    users: POW(TRADER)    
+    &
+    !(t).(t: ran(trades) => t'quantity < 100000)
+    &
+    !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
+    &
+    !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
+\end{lstlisting}
+        
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+INITIALISATION
+    trades := {}
+    ||
+    users := {}
+\end{lstlisting}
+
+\hspace{-0.7cm} Something...
+
+\begin{lstlisting}
+OPERATIONS
+    ...
+END
+
+\begin{lstlisting}
+AddTrader(u) = 
+PRE
+    u: TRADER
+    &
+    u/: users
+THEN
+    users := users \/ {u}
+END;
+RemoveTrader(u) = 
+PRE
+    u: TRADER
+    &
+    u:users
+    &
+    {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
+THEN
+    users := users - {u}
+END;
+\end{lstlisting}
+
+\begin{lstlisting}
+CreateTrade(t) =
+  PRE
+    t: TRADE
+    &
+    t'identifier /: dom(trades)
+    &
+    t'owner: users 
+    &
+    t'status = Open 
+    &
+    t'endDate = None 
+    &
+    t'quantity < 100000
+    THEN
+    trades := trades \/ { t'identifier |-> t }
+END;
+CloseTrade(i, d) =
+  PRE
+    i: IDENTIFIER
+    &
+    d: DATE
+    &
+    i: dom(trades)
+    &
+    trades(i)'startDate < d
+    &
+    trades(i)'status = Open
+    &
+    trades(i)'endDate = None
+    THEN
+    LET trade BE trade = trades(i) IN
+        trades := trades <+ { i |-> rec( 
+        identifier: trade'identifier, 
+        direction: trade'direction, 
+        security: trade'security, 
+        quantity: trade'quantity, 
+        startDate: trade'startDate, 
+        counterparty: trade'counterparty,
+        owner: trade'owner,
+        endDate: Some(d), 
+        status: Closed
+    ) }
+  END
+END 
+\end{lstlisting}
+
+\pagebreak
+
+\subsection*{Benefits and Limitations}
+
+... \pagebreak
+
+\subsection*{Relationship between Z and B}
+
+... \pagebreak
+
+\subsection*{Conclusions}
+
+... \pagebreak
+
+\subsection*{References}
+
+...
+
+\end{document}
