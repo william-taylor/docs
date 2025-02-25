@@ -180,114 +180,75 @@ B has a lot in common with Z, which will in part been due to Abrial playing a la
 \newline \newline
 The B-method like Z notation before it lacks support for nonfunctional requirements despite being closer to an implementation level description. Like Z, the B-Method is primarily a state-based modelling tool but with greater emphasis on refinement and proof processes. Describing properties outside of this domain will require working with additional tools or formal methods such as Atelier B, Event-B and TLA+ that aim to address these points.
 
-\newpage
-
 \subsubsection*{Trading System Model}
 
-Something...
-
+Our trading system model in B starts with the machine definition. Because we need to express date as an option our DateOption free type in Z needs to be declared as a free type in B so we can express the constructor function.
 \begin{lstlisting}
 MACHINE TradingSystem
-   ...
+  FREETYPES
+    DATEOPTION = None, Some(DATE)
+  ...
 END
 \end{lstlisting}
 
-\hspace{-0.7cm} Something...
+\hspace{-0.7cm} The remaining free types are expressed as sets in our abstract state machine and mirror the definitions in our Z representation.
 
 \begin{lstlisting}
 SETS 
-    COUNTERPARTY = { Citadel, Millennium };
-    DIRECTION = { Borrow, Loan };
-    SECURITY = { Bond, Stock };
-    STATUS = { Open, Closed };
-    TRADER = { Joe, John, Jane, Joan };
-    PREFIX = { T, U, S, V }
+  COUNTERPARTY = { Citadel, Millennium };
+  DIRECTION = { Borrow, Loan };
+  SECURITY = { Bond, Stock };
+  STATUS = { Open, Closed };
+  TRADER = { Joe, John, Jane, Joan };
+  PREFIX = { T, U, S, V }
 \end{lstlisting}
 
-\hspace{-0.7cm} Something...
-
-\begin{lstlisting}
-FREETYPES
-    DATEOPTION = None, Some(DATE)
-\end{lstlisting}
-
-\hspace{-0.7cm} Something...
+\hspace{-0.7cm} Our helper types such as 'IDENTIFIER' and 'DATE' are declared as definitions. 'TRADE' has been defined as a struct mirroring the schema type we declared in Z spec.
 
 \begin{lstlisting}
 DEFINITIONS
-    DATE == 20250101..20991231;
-    IDENTIFIER == PREFIX * (1..9);
-    TRADE == struct(
-    identifier: IDENTIFIER, 
-    direction: DIRECTION, 
-    security: SECURITY, 
-    quantity: NAT1, 
-        counterparty: COUNTERPARTY,
-        startDate: DATE, 
-        endDate: DATEOPTION, 
-        status: STATUS, 
-        owner: TRADER 
-    )
+  DATE == 20250101..20991231;
+  IDENTIFIER == PREFIX * (1..9);
+  TRADE == struct( identifier: IDENTIFIER, direction: DIRECTION, security: SECURITY, quantity: NAT1, counterparty: COUNTERPARTY,startDate: DATE, endDate: DATEOPTION, status: STATUS, owner: TRADER )
 \end{lstlisting}
 
-\hspace{-0.7cm} Something...
+\hspace{-0.7cm} For capturing users of the trading system and trades booked we mirror the global state from the Z specification with a trades and users variables.
 
 \begin{lstlisting}
 VARIABLES
-    trades, users
+  trades, users
+INITIALISATION
+  trades := {}
+  ||
+  users := {}
 \end{lstlisting}
     
-\hspace{-0.7cm} Something...
+\hspace{-0.7cm} The invariants for the machine are declared with trades are partial function mapping identifiers to a trade and users a set of traders. I've also imported our constriants around max quantity, trades that have an end date being marked with the correct state and finally expressing the condition that traders with open trades cannot be removed from the system.
 
 \begin{lstlisting}
 INVARIANT
-    trades: IDENTIFIER +-> TRADE
-    &
-    users: POW(TRADER)    
-    &
-    !(t).(t: ran(trades) => t'quantity < 100000)
-    &
-    !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
-    &
-    !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
-\end{lstlisting}
-        
-\hspace{-0.7cm} Something...
-
-\begin{lstlisting}
-INITIALISATION
-    trades := {}
-    ||
-    users := {}
+  trades: IDENTIFIER +-> TRADE
+  &
+  users: POW(TRADER)    
+  &
+  !(t).(t: ran(trades) => t'quantity < 100000)
+  &
+  !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
+  &
+  !(t).(t: ran(trades) & t'status = Open => t'owner: users)
 \end{lstlisting}
 
-\hspace{-0.7cm} Something...
+\hspace{-0.7cm} Which moves us finally onto a operations. Starting with adding and removing traders and then creating and closing trades preconditions to make sure we don't invalidate the invariants we specified earlier. 
 
 \begin{lstlisting}
-OPERATIONS
+  OPERATIONS
     ...
-END
-
-\begin{lstlisting}
-AddTrader(u) = 
-PRE
-    u: TRADER
-    &
-    u/: users
-THEN
-    users := users \/ {u}
-END;
-RemoveTrader(u) = 
-PRE
-    u: TRADER
-    &
-    u:users
-    &
-    {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
-THEN
-    users := users - {u}
-END;
+  END
 \end{lstlisting}
+
+\pagebreak
+
+\hspace{-0.7cm} Something something something
 
 \begin{lstlisting}
 CreateTrade(t) =
@@ -303,9 +264,14 @@ CreateTrade(t) =
     t'endDate = None 
     &
     t'quantity < 100000
-    THEN
+  THEN
     trades := trades \/ { t'identifier |-> t }
-END;
+  END;
+\end{lstlisting}
+
+\hspace{-0.7cm} Something something something
+
+\begin{lstlisting}
 CloseTrade(i, d) =
   PRE
     i: IDENTIFIER
@@ -319,24 +285,56 @@ CloseTrade(i, d) =
     trades(i)'status = Open
     &
     trades(i)'endDate = None
-    THEN
-    LET trade BE trade = trades(i) IN
-        trades := trades <+ { i |-> rec( 
-        identifier: trade'identifier, 
-        direction: trade'direction, 
-        security: trade'security, 
-        quantity: trade'quantity, 
-        startDate: trade'startDate, 
-        counterparty: trade'counterparty,
-        owner: trade'owner,
-        endDate: Some(d), 
-        status: Closed
-    ) }
-  END
-END 
+  THEN
+    LET trade BE t = trades(i) IN
+      trades := trades <+ { 
+        i |-> rec( 
+          identifier: t'identifier, 
+          direction: t'direction, 
+          security: t'security, 
+          quantity: t'quantity, 
+          startDate: t'startDate, 
+          counterparty: t'counterparty, 
+          owner: t'owner, 
+          endDate: Some(d),
+          status: Closed 
+        ) 
+      }
+    END
+  END 
 \end{lstlisting}
 
 \pagebreak
+
+
+\hspace{-0.7cm} Something something something
+
+\begin{lstlisting}
+AddTrader(u) = 
+  PRE
+    u: TRADER
+    &
+    u/: users
+  THEN
+    users := users \/ {u}
+END;
+\end{lstlisting}
+
+\hspace{-0.7cm} Something something something
+
+\begin{lstlisting}
+  RemoveTrader(u) = 
+    PRE
+      u: TRADER
+      &
+      u:users
+      &
+      {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
+    THEN
+      users := users - {u}
+    END;
+END
+\end{lstlisting}
 
 \subsection*{Benefits and Limitations}
 
