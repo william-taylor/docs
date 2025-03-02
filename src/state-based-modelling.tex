@@ -2,7 +2,7 @@
 
 % Packages
 \usepackage{fuzz}
-\usepackage[margin=1.25in]{geometry}
+\usepackage{geometry}
 \usepackage{listings}
 
 % Metadata
@@ -31,6 +31,277 @@
 
 % Question 1
 \section*{Q1}
+
+\subsection*{Part A}
+
+\begin{axdef}
+timeline: Timeline \cross Character \fun Timeline \\
+\where
+\forall x: Timeline; y: Character @ \\
+\t1 timeline(x, y) = x \\
+\end{axdef}
+
+\begin{axdef}
+character: Timeline \cross Character \fun Character \\
+\where
+\forall x: Timeline; y: Character @ \\
+\t1 character(x, y) = y \\
+\end{axdef} 
+
+\begin{zed}
+[Multiverse, Timeline, Character] \\
+LivingStatus ::= alive | dead \\
+BeingType ::= human | immortal | superhero \\
+\end{zed}
+
+\begin{schema}{LifeTracker}
+remainingLives:  0 \upto 3 \\ 
+maximumLives: 1 \upto 3 \\ 
+\where
+remainingLives \leq maximumLives \\
+\end{schema}
+
+\begin{schema}{CharacterInstance}
+LifeTracker \\ 
+being: BeingType \\
+status: LivingStatus \\
+\where  
+maximumLives = 1 \iff being \in \{ immortal, human \} \\
+maximumLives \leq 3 \iff being = superhero \\
+status = alive \iff being = immortal \\ 
+\end{schema}
+
+\begin{schema}{Megaverse}
+multiverses: \power Multiverse \\
+characters: \power Character \\
+timelines: \power Timeline \\ 
+universes: Multiverse \rel Timeline \\
+population: Timeline \cross Character \pfun CharacterInstance \\
+\where
+\dom universes \subseteq multiverses \\ 
+\ran universes \subseteq timelines \\ 
+\forall t: timelines @ \#\{ m: multiverses | (m, t) \in universes \} \leq 1 \\
+\{ p: \dom population @ timeline(p) \} \subseteq timelines \\
+\{ p: \dom population @ character(p) \} \subseteq characters \\
+\end{schema}
+
+\begin{schema}{Init}
+Megaverse \\ 
+\where
+multiverses = \emptyset \\
+characters = \emptyset \\ 
+timelines = \emptyset \\
+universes = \emptyset \\
+population = \emptyset \\
+\end{schema}
+
+\begin{schema}{CreateMultiverse}
+\Delta Megaverse \\
+m?: Multiverse \\
+\where
+m? \notin multiverses \\
+characters' = characters \\
+timelines' = timelines \\
+universes' = universes \\
+multiverses' = multiverses \cup \{ m? \} \\ 
+population' = population \\
+\end{schema}
+
+\begin{schema}{DeleteMultiverse}
+\Delta Megaverse \\
+m?: Multiverse \\
+\where
+m? \in multiverses \\
+characters' = characters \\
+multiverses' = multiverses \setminus \{ m? \} \\
+universes' = \{ m? \} \ndres universes \\
+population' = \{ p: \dom population | timeline(p) \in universes \limg \{ m? \} \rimg \} \ndres population \\
+timelines' = timelines \setminus universes \limg \{ m? \} \rimg   \\
+\end{schema} 
+
+\begin{schema}{CreateTimeline}
+\Delta Megaverse \\
+t?: Timeline \\
+m?: Multiverse \\
+\where
+m? \in multiverses \\ 
+t? \notin timelines \\ 
+characters' = characters \\ 
+multiverses' = multiverses \\
+population' = population \\ 
+timelines' = timelines \cup \{ t? \} \\
+universes' = universes \cup \{ m? \mapsto t? \} \\
+population' = population \\
+\end{schema}
+
+\begin{schema}{MoveTimeline}
+\Delta Megaverse \\
+t?: Timeline \\
+s?: Multiverse \\
+d?: Multiverse \\
+\where
+t? \in timelines \\
+characters' = characters \\ 
+multiverses' = multiverses \\
+population' = population \\
+timelines' = timelines \\ 
+universes' = universes \setminus \{ s? \mapsto t? \} \cup \{ d? \mapsto t? \} \\
+\end{schema}
+
+\begin{schema}{DeleteTimeline}
+\Delta Megaverse \\
+t?: Timeline \\
+\where
+t? \in timelines \\
+characters' = characters \\ 
+multiverses' = multiverses \\
+population' = \{ p: \dom population | timeline(p) = t? \} \dres population \\
+timelines' = timelines \setminus \{ t? \} \\
+universes' = universes \nrres \{ t? \} \\
+\end{schema}
+
+\begin{schema}{CreateCharacter}
+\Delta Megaverse \\
+c?: Character \\
+\where 
+c? \notin characters \\
+characters' = characters \cup \{ c? \} \\
+multiverses' = multiverses \\
+population' = population \\
+timelines' = timelines \\
+universes' = universes \\
+\end{schema}
+
+\begin{schema}{AddCharacterToTimeline}
+\Delta Megaverse \\
+m?: Multiverse \\
+t?: Timeline \\
+c?: Character \\
+s?: CharacterInstance \\ 
+\where
+m? \in multiverses \\
+t? \in timelines \\ 
+c? \in characters \\
+multiverses' = multiverses \\
+characters' = characters \\
+population' = population \cup \{ (t? \mapsto c?) \mapsto s? \} \\ 
+timelines' = timelines \\
+universes' = universes \\
+\end{schema}
+
+\begin{schema}{KillCharacterLocal} 
+\Delta CharacterInstance \\
+\where
+status = alive \\
+remainingLives' = remainingLives \\
+maximumLives' = maximumLives \\
+status' = dead \\
+being' = being \\
+\end{schema}
+
+\begin{schema}{ReanimateCharacterLocal}
+\Delta CharacterInstance \\
+\where
+status = dead \\
+being = superhero \\
+maximumLives' = maximumLives \\
+remainingLives' = remainingLives - 1 \\
+being' = being \\
+status' = alive \\
+\end{schema}
+
+\begin{schema}{ChangeToHumanLocal}
+\Delta CharacterInstance \\
+\where
+being = immortal \\
+maximumLives' = 1 \\
+remainingLives' = 1 \\
+being' = human \\
+status' = alive \\
+\end{schema}
+
+\begin{schema}{ChangeToSuperheroLocal}
+\Delta CharacterInstance \\
+l?: 2 \upto 3 \\
+\where
+status = alive \\
+being = human \\
+remainingLives' = l? \\
+maximumLives' = l? \\
+status' = status \\
+being' = superhero \\
+\end{schema}
+
+\begin{schema}{PromoteCharacterInstance}
+\Delta Megaverse \\
+\Delta CharacterInstance \\
+c?: Character \\
+t?: Timeline \\ 
+\where 
+(t?, c?) \in \dom population \\ 
+\theta CharacterInstance = population(t?, c?) \\
+population' = population \oplus \{ (t?, c?) \mapsto \theta CharacterInstance' \}   \\
+multiverses' = multiverses \\
+characters' = characters \\
+timelines' = timelines \\
+\end{schema}
+
+\begin{zed}
+GlobalKillCharacter \defs \exists \Delta CharacterInstance @ \\
+\t1 KillCharacterLocal \land PromoteCharacterInstance \\
+\end{zed}
+
+\begin{zed}
+GlobalReanimateCharacter \defs \exists \Delta CharacterInstance @ \\
+\t1 ReanimateCharacterLocal \land PromoteCharacterInstance \\
+\end{zed}
+
+\begin{zed}
+GlobalChangeToHuman \defs \exists \Delta CharacterInstance @ \\ 
+\t1 ChangeToHumanLocal \land PromoteCharacterInstance \\
+\end{zed}
+
+\begin{zed}
+GlobalChangeToSuperhero \defs \exists \Delta CharacterInstance @ \\
+\t1 ChangeToSuperheroLocal \land PromoteCharacterInstance \\
+\end{zed}
+
+\begin{schema}{LivingStatusForCharactersInTimeline}
+\Xi Megaverse \\
+t?: Timeline \\ 
+o!: \power (Character \cross LivingStatus) \\
+\where 
+t? \in timelines \\
+o! = \{ c: characters | (t?, c) \in \dom population @ \\
+\t1 c \mapsto (population(t?, c)).status 
+\} \\ 
+\end{schema}
+
+\begin{axdef}
+characterBeingAndStatus: CharacterInstance \fun BeingType \cross LivingStatus \\
+\where
+\forall instance: CharacterInstance @ \\
+\t1 characterBeingAndStatus(instance) = (instance.being, instance.status) \\
+\end{axdef} 
+
+\begin{schema}{CharacterStatusAcrossAllTimelines}
+\Xi Megaverse \\
+c?: Character \\ 
+o!: \power (Timeline \cross (BeingType \cross LivingStatus)) \\
+\where 
+c? \in characters \\
+o! = \{ t: timelines | (t, c?) \in \dom population @ \\
+\t1 t \mapsto characterBeingAndStatus(population((t, c?))) 
+\} \\ 
+\end{schema}
+
+\pagebreak
+
+\subsection*{Part B}
+
+\pagebreak
+
+\subsection*{Part C}
 
 \pagebreak
 
