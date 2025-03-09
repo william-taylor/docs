@@ -721,6 +721,93 @@ OPERATIONS
 
 \subsection*{Part C}
 
+For extending the model I thought it was worth exploring how we might redefine BeingType and expand the Character type which does not contain any properties to allow us to express immutable characteristics that must be respected by each instance of the character. Starting with the Z model updates first.  \\
+\newline
+BeingType is rather overloaded and combines multiple states that is rather restrictive. It tries to express a character’s mortality, powers, species and alignment in the context of the story. Splitting the type up so that we could express more would make the model more powerful.  \\
+
+\begin{zed}
+Alignment ::= hero | antihero | villan | antivillan \\
+Mortality ::= mortal | immortal \\
+Power ::= none | enhanced | mutant | magic | cosmic \\
+Species ::= human | alien | titan | android \\
+\end{zed}
+
+These now need to be incorporated into our CharacterState schema replacing the use of our existing BeingType free type. \\
+
+\begin{schema}{CharacterState}
+alignment: Alignment \\
+mortality: Mortality \\
+species: Species \\
+power: Power \\
+lives: 0 \upto 3  \\ 
+revives: 1 \upto 3 \\ 
+\where
+mortality = immortal \implies (revives, lives, status) = (1, 1, alive) \\
+species = human \land power = none \implies revives = 1 \\
+lives \leq revives \\
+\end{schema}
+
+\begin{schema}{KillCharacterLocal} 
+\Delta CharacterState \\
+\where
+being \neq immortal \\
+status = alive \\
+lives' = lives - 1 \\
+revives' = revives \\
+status' = dead \\
+being' = being \\
+\end{schema}
+  
+\begin{schema}{ReanimateCharacterLocal}
+\Delta CharacterState \\
+\where
+status = dead \\
+lives > 0 \\
+being = superhero \\
+revives' = revives \\
+lives' = lives \\
+being' = being \\
+status' = alive \\
+\end{schema}
+
+\begin{schema}{GiveupImmortalityLocal}
+\Delta CharacterState \\
+\where
+being = immortal \\
+lives' = 1 \\
+revives' = 1 \\
+being' = human \\
+status' = alive \\
+\end{schema}
+
+\begin{schema}{GainPowersLocal}
+\Delta CharacterState \\
+p?: Power \\
+l?: 2 \upto 3 \\
+\where
+p? \neq none \\
+status = alive \\
+being = human \\
+lives' = l? \\
+revives' = l? \\
+status' = status \\
+being' = superhero \\
+\end{schema}
+
+These new types then complement the expansion of the Character type. It may be useful to be able to track a character’s name, author and traits that define state that doesn’t change when a character is part of a different timeline or multiverse.  \\
+
+-Name, Author Types \\
+-New Character Type \\
+This expansion does create some problems for the model. Each character instance needs to respect the traits found in the character definition and vice versa. Those without the corruptible trait can’t become supervillains, a character can’t be an alien if marked as human only. To solve these additional constraints have been added to the global state Megaverse.  \\
+-Constraints \\
+Moving to the updates in our B model, new sets need to be constructed for the free types we added to our Z model and operations updated to reflect these new definitions.  \\
+-B free types \\
+Character now needs to be a struct to capture the additional attributes. \\
+-B structs \\
+Constraints need to be reworked into additional invariants and preconditions for the existing operations. \\
+-Operations \\
+
+
 \pagebreak
 
 % Question 1
