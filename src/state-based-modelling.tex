@@ -721,96 +721,239 @@ OPERATIONS
 
 \subsection*{Part C}
 
-For extending the model I thought it was worth exploring how we might redefine BeingType and expand the Character type which does not contain any properties to allow us to express immutable characteristics that must be respected by each instance of the character. Starting with the Z model updates first.  \\
-\newline
-BeingType is rather overloaded and combines multiple states that is rather restrictive. It tries to express a character’s mortality, powers, species and alignment in the context of the story. Splitting the type up so that we could express more would make the model more powerful.  \\
+For extending the model I thought it would make sense to expand the detail we capture in the CharacterState schema. We currently have a BeingType free type but it’s rather overloaded and expresses multiple things together that is rather limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character who has powers but may be a villain in the story? For this I’ve created the below replacement free types.
 
 \begin{zed}
-Alignment ::= hero | antihero | villan | antivillan \\
 Mortality ::= mortal | immortal \\
-Power ::= none | enhanced | mutant | magic | cosmic \\
+Alignment ::= neutral | hero | villan \\
+Power ::= enhanced | mutant | magic | cosmic \\
 Species ::= human | alien | titan | android \\
 \end{zed}
 
-These now need to be incorporated into our CharacterState schema replacing the use of our existing BeingType free type. \\
+\hspace{-0.64cm} This introduces the first state-based problem, if human is now captured as a species how do we capture when the human has powers or not. To solve this problem I’ve created the below free type with a constructor that allows us to express when a character has powers or not.
+
+\begin{zed}
+Powers ::= none | some \ldata Power \rdata \\
+\end{zed}
+
+\hspace{-0.64cm} Which means we can now add these details to the CharacterState schema, which has knock on effects. Updating our constraints to deal with these new details, using the new mortality/powers details in place of the existing being type attribute.
 
 \begin{schema}{CharacterState}
 alignment: Alignment \\
 mortality: Mortality \\
+powers: Powers \\
 species: Species \\
-power: Power \\
 lives: 0 \upto 3  \\ 
 revives: 1 \upto 3 \\ 
+status: LivingStatus \\
 \where
 mortality = immortal \implies (revives, lives, status) = (1, 1, alive) \\
-species = human \land power = none \implies revives = 1 \\
+powers = none \implies revives = 1 \\ 
 lives \leq revives \\
 \end{schema}
+
+\hspace{-0.64cm} This creates another problem, the become human and become superhero operators don’t make much sense with these new attributes. Should an alien immortal become human if they give up their immortality? Can only humans become superheroes? To resolve it made sense to redefine them as a gain powers operator and give up immortality operator that allows our new attributes to be expressed and expand the range of possible states in the model. \\
+\newline
+The gain powers operator accepts alignment and power as inputs so they can be declared when a character gains a power. The giving up immortality operatory now longer changes the characters species but its preconditions have been updated to look at the new mortality attribute. That precondition change was also needed for the kill character operator and the resurrecting character operator now needed to move to use the powers attribute. Of course, all these operators now needed to detail how the new properties change when the operator is executed. \\
 
 \begin{schema}{KillCharacterLocal} 
 \Delta CharacterState \\
 \where
-being \neq immortal \\
 status = alive \\
+mortality \neq immortal \\
+alignment' = alignment \\
+mortality' = mortality \\
+powers' = powers \\ 
+species' = species \\
 lives' = lives - 1 \\
 revives' = revives \\
 status' = dead \\
-being' = being \\
-\end{schema}
-  
-\begin{schema}{ReanimateCharacterLocal}
-\Delta CharacterState \\
-\where
-status = dead \\
-lives > 0 \\
-being = superhero \\
-revives' = revives \\
-lives' = lives \\
-being' = being \\
-status' = alive \\
 \end{schema}
 
-\begin{schema}{GiveupImmortalityLocal}
+\begin{schema}{ResurrectCharacterLocal}
 \Delta CharacterState \\
 \where
-being = immortal \\
-lives' = 1 \\
-revives' = 1 \\
-being' = human \\
+lives > 0 \\
+status = dead \\
+powers \neq none \\ 
+alignment' = alignment \\
+mortality' = mortality \\
+powers' = powers \\ 
+species' = species \\
+lives' = lives \\
+revives' = revives \\
 status' = alive \\
 \end{schema}
 
 \begin{schema}{GainPowersLocal}
 \Delta CharacterState \\
 p?: Power \\
+a?: Alignment \\
 l?: 2 \upto 3 \\
 \where
-p? \neq none \\
-status = alive \\
-being = human \\
+status = alive \\ 
+species = human \\
+powers = none \\
+alignment' = a? \\
+mortality' = mortality \\
+powers' = some(p?) \\ 
+species' = species \\
 lives' = l? \\
 revives' = l? \\
 status' = status \\
-being' = superhero \\
 \end{schema}
 
-These new types then complement the expansion of the Character type. It may be useful to be able to track a character’s name, author and traits that define state that doesn’t change when a character is part of a different timeline or multiverse.  \\
+\begin{schema}{GiveUpImmortalityLocal}
+\Delta CharacterState \\
+\where
+mortality = immortal \\
+alignment' = alignment \\
+mortality' = mortality \\
+powers' = powers \\ 
+species' = species \\
+lives' = 1 \\
+revives' = 1 \\
+status' = alive \\
+\end{schema}
 
--Name, Author Types \\
--New Character Type \\
-This expansion does create some problems for the model. Each character instance needs to respect the traits found in the character definition and vice versa. Those without the corruptible trait can’t become supervillains, a character can’t be an alien if marked as human only. To solve these additional constraints have been added to the global state Megaverse.  \\
--Constraints \\
-Moving to the updates in our B model, new sets need to be constructed for the free types we added to our Z model and operations updated to reflect these new definitions.  \\
--B free types \\
-Character now needs to be a struct to capture the additional attributes. \\
--B structs \\
-Constraints need to be reworked into additional invariants and preconditions for the existing operations. \\
--Operations \\
+\hspace{-0.64cm} Finally with our redefined and updated operators we need to define them in the context of the global state schema so these local operations can be promoted from CharacterState to the Megaverse. 
 
+\begin{zed}
+GlobalGiveUpImmortality \defs \exists \Delta CharacterState @ GiveUpImmortalityLocal \land PromoteCharacterState \\
+GlobalResurrectCharacter \defs \exists \Delta CharacterState @ ResurrectCharacterLocal \land PromoteCharacterState \\
+GlobalKillCharacter \defs \exists \Delta CharacterState @ KillCharacterLocal \land PromoteCharacterState \\ 
+GlobalGainPowers \defs \exists \Delta CharacterState @ GainPowersLocal \land PromoteCharacterState \\
+\end{zed}
 
+\hspace{-0.64cm} Adding these extensions to the B model starts with adding new sets for our new free type definitions. But for the powers free type that needs to express a full free type in B as it can’t be expressed as a set and following that through by adding the new attributes to the CharacterState struct.
+
+\begin{verbatim}
+SETS 
+  /* ... */
+  MORTALITY = { mortal, immortal };
+  ALIGNMENT = { neutral, hero, villan };
+  POWER = { enhanced, mutant, magic, cosmic };
+  SPECIES = { human, alien, titan, android }
+\end{verbatim}
+\begin{verbatim}
+FREETYPES
+  POWERS = NONE, SOME(POWER)
+\end{verbatim}
+\begin{verbatim}
+DEFINITIONS
+  CHARACTER_STATE == 
+    struct(alignment: ALIGNMENT, mortality: MORTALITY, powers: POWERS, 
+      species: SPECIES, lives: 0..3, revives: 1..3, status: LIVING_STATUS);
+\end{verbatim}
+
+\hspace{-0.64cm} With the new attributes stored, we then need to update the corresponding invariants to make use of the new attributes. This then extends to updating the pre-existing preconditions for the add character to timeline operation to make sure we can’t add a character state that violates the invariants we just corrected.
+
+\begin{verbatim}
+INVARIANT
+  /* ... */
+  !(s).(s: ran(characterStates) & s'powers = NONE => s'revives = 1)
+  &
+  !(s).(s: ran(characterStates) & s'mortality = immortal 
+      => (s'revives, s'lives, s'status) = (1, 1, alive))
+\end{verbatim}
+
+\begin{verbatim}
+AddCharacterToTimeline(m, t, c, s) =
+  PRE
+    /* ... */
+    (s'powers /= NONE => s'revives = 1)
+    &
+    (s'mortality = immortal => (s'revives, s'lives, s'status) = (1, 1, alive))
+\end{verbatim}
+
+\hspace{-0.64cm} Replicating the gain powers and give up immortality operators in B translates very similarly to what we did in the Z. Preconditions are updated and new input parameters for the gain powers operation. 
+
+\begin{verbatim}
+KillCharacter(c, t) =
+  PRE
+    t: TIMELINE 
+    &
+    c: CHARACTER
+    &
+    (t,c): dom(characterStates)
+    &
+    characterStates((t,c))'status = alive
+    &
+    characterStates((t, c))'mortality = mortal
+  THEN
+    LET s BE s = characterStates(t,c) IN 
+      characterStates(t,c) := 
+        rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
+          species: s'species, lives: s'lives - 1, revives: s'revives, status: dead)
+    END
+  END;
+\end{verbatim}
+\begin{verbatim}
+ResurrectCharacter(t, c) =
+  PRE
+    t: TIMELINE 
+    &
+    c: CHARACTER
+    &
+    (t,c): dom(characterStates)
+    &
+    characterStates((t,c))'status = dead
+    &
+    characterStates((t,c))'lives > 0
+  THEN
+    LET s BE s = characterStates(t,c) IN 
+      characterStates(t,c) := 
+        rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
+          species: s'species, lives: s'lives, revives: s'revives, status: alive)
+    END
+  END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+  GainPowers(t,c,l,p,a) =
+    PRE
+      t: TIMELINE 
+      &
+      c: CHARACTER
+      &
+      l: 2..3
+      &
+      p: POWER
+      &
+      a: ALIGNMENT
+      &
+      (t,c): dom(characterStates)
+      &
+      characterStates((t,c))'powers = NONE
+      & 
+      characterStates((t,c))'status = alive
+    THEN
+      LET s BE s = characterStates(t,c) IN
+        characterStates(t,c) := 
+          rec(alignment: a, mortality: s'mortality, powers: SOME(p), 
+            species: s'species, lives: l, revives: l, status: alive)
+      END
+    END;
+
+  GiveUpImmortality(t,c) =
+    PRE
+      t: TIMELINE 
+      &
+      c: CHARACTER
+      &
+      (t,c): dom(characterStates)
+      &
+      characterStates((t,c))'mortality = immortal
+    THEN
+      LET s BE s = characterStates(t,c) IN
+        characterStates(t,c) := 
+          rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
+            species: s'species, lives: 1, revives: 1, status: alive)
+      END
+    END;
+\end{verbatim}
 \pagebreak
 
-% Question 1
 \section*{Q2}
 
 \subsection*{Introduction}
@@ -959,17 +1102,17 @@ The B-method like Z notation before it lacks support for nonfunctional requireme
 \subsubsection*{Trading System Model}
 
 Our trading system model in B starts with the machine definition. Because we need to express date as an option our DateOption free type in Z needs to be declared as a free type in B so we can express the constructor function.
-\begin{lstlisting}
+\begin{verbatim}
 MACHINE TradingSystem
   FREETYPES
     DATEOPTION = None, Some(DATE)
   ...
 END
-\end{lstlisting}
+\end{verbatim}
 
 \hspace{-0.7cm} The remaining free types are expressed as sets in our abstract state machine and mirror the definitions in our Z representation.
 
-\begin{lstlisting}
+\begin{verbatim}
 SETS 
   COUNTERPARTY = { Citadel, Millennium };
   DIRECTION = { Borrow, Loan };
@@ -977,31 +1120,31 @@ SETS
   STATUS = { Open, Closed };
   TRADER = { Joe, John, Jane, Joan };
   PREFIX = { T, U, S, V }
-\end{lstlisting}
+\end{verbatim}
 
 \hspace{-0.7cm} Our helper types such as 'IDENTIFIER' and 'DATE' are declared as definitions. 'TRADE' has been defined as a struct mirroring the schema type we declared in Z spec.
 
-\begin{lstlisting}
+\begin{verbatim}
 DEFINITIONS
   DATE == 20250101..20991231;
   IDENTIFIER == PREFIX * (1..9);
   TRADE == struct( identifier: IDENTIFIER, direction: DIRECTION, security: SECURITY, quantity: NAT1, counterparty: COUNTERPARTY,startDate: DATE, endDate: DATEOPTION, status: STATUS, owner: TRADER )
-\end{lstlisting}
+\end{verbatim}
 
 \hspace{-0.7cm} For capturing users of the trading system and trades booked we mirror the global state from the Z specification with a trades and users variables.
 
-\begin{lstlisting}
+\begin{verbatim}
 VARIABLES
   trades, users
 INITIALISATION
   trades := {}
   ||
   users := {}
-\end{lstlisting}
+\end{verbatim}
     
 \hspace{-0.7cm} The invariants for the machine are declared with trades are partial function mapping identifiers to a trade and users a set of traders. I've also imported our constriants around max quantity, trades that have an end date being marked with the correct state and finally expressing the condition that traders with open trades cannot be removed from the system.
 
-\begin{lstlisting}
+\begin{verbatim}
 INVARIANT
   trades: IDENTIFIER +-> TRADE
   &
@@ -1012,21 +1155,21 @@ INVARIANT
   !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
   &
   !(t).(t: ran(trades) & t'status = Open => t'owner: users)
-\end{lstlisting}
+\end{verbatim}
 
 \hspace{-0.7cm} Which moves us finally onto a operations. Starting with adding and removing traders and then creating and closing trades preconditions to make sure we don't invalidate the invariants we specified earlier. 
 
-\begin{lstlisting}
+\begin{verbatim}
   OPERATIONS
     ...
   END
-\end{lstlisting}
+\end{verbatim}
 
 \pagebreak
 
 \hspace{-0.7cm} Something something something
 
-\begin{lstlisting}
+\begin{verbatim}
 CreateTrade(t) =
   PRE
     t: TRADE
@@ -1043,11 +1186,11 @@ CreateTrade(t) =
   THEN
     trades := trades \/ { t'identifier |-> t }
   END;
-\end{lstlisting}
+\end{verbatim}
 
 \hspace{-0.7cm} Something something something
 
-\begin{lstlisting}
+\begin{verbatim}
 CloseTrade(i, d) =
   PRE
     i: IDENTIFIER
@@ -1078,14 +1221,14 @@ CloseTrade(i, d) =
       }
     END
   END 
-\end{lstlisting}
+\end{verbatim}
 
 \pagebreak
 
 
 \hspace{-0.7cm} Something something something
 
-\begin{lstlisting}
+\begin{verbatim}
 AddTrader(u) = 
   PRE
     u: TRADER
@@ -1094,11 +1237,11 @@ AddTrader(u) =
   THEN
     users := users \/ {u}
 END;
-\end{lstlisting}
+\end{verbatim}
 
 \hspace{-0.7cm} Something something something
 
-\begin{lstlisting}
+\begin{verbatim}
   RemoveTrader(u) = 
     PRE
       u: TRADER
@@ -1110,7 +1253,7 @@ END;
       users := users - {u}
     END;
 END
-\end{lstlisting}
+\end{verbatim}
 
 \subsection*{Benefits and Limitations}
 
