@@ -967,7 +967,7 @@ Z is, however, not intended for the description and specification of nonfunction
 
 \subsubsection*{Trading System Model}
 
-The trading system model in Z starts with some helper types. An ‘Identifier’ type for use as a readable unique identifier for trades. A ‘Date’ type has also been created, represented a natural number for easy date comparisons.  Finally, a ‘DateOption’ free type that allows us to express an end date for our trades in an optional manner.
+The trading system model in Z starts with some helper types. An ‘Identifier’ type for use as a readable unique identifier for trades. A ‘Date’ type has also been introduced, represented as a natural number for easy comparisons. Finally, a ‘DateOption’ free type that allows us to express an end date for our trades in an optional manner. 
 
 \begin{zed}
 Identifier == Prefix \cross \{ d: \nat | d \geq 1 \land d \leq 9 \} \\ 
@@ -975,7 +975,7 @@ Date == \{ d: \nat | d \geq 20250101 \land d \leq 20991231 \} \\
 DateOption ::= None | Some \ldata Date \rdata \\
 \end{zed}
 
-\hspace{-0.62cm} I've also defined the following free types: Security, Trader and Counterparty that represents the type of security being traded, the trader themselves and the counterparty the trade is with for brevity.  Direction, Status and Prefix have been defined as they are suitable representations for the properties they will represent.
+\hspace{-0.7cm} We have also defined the following free types: Security, Trader, and Counterparty, which represent the type of security being traded, the trader themselves, and the counterparty the trade is with for brevity. Direction, Status, and Prefix have been defined as they are suitable representations for the properties they will represent.
 
 \begin{zed}
 Counterparty ::= Citadel | Millennium  \\ 
@@ -986,7 +986,7 @@ Trader ::= Joe | John | Jane | Joan \\
 Prefix ::= T | S | U \\
 \end{zed}
 
-\hspace{-0.62cm} Which now allows us to define our Trade schema which will define our local state, capturing the identifier of the trade and its associated properties. A maximum quantity size 100,000 has been expressed through our constraints in additional adding a guard that when a trade has ended it is marked as Closed. 
+\hspace{-0.7cm} This now allows us to define our Trade schema, which will define our local state and capture the trade's identifier and associated properties. Our constraints have expressed a maximum quantity of 100,000, and we have added a guard to ensure the trade is marked as closed when an end date has been agreed.
 
 \begin{schema}{Trade}
 identifier: Identifier \\
@@ -1000,17 +1000,18 @@ status: Status \\
 owner: Trader \\
 \where
 quantity \leq 100000 \\
-status = Closed \iff endDate \neq None \\
+endDate \neq None \implies status = Closed \\
 \end{schema}
-
-\hspace{-0.7cm} Trades are stored in a global state the ‘TradingSystem’ schema which keeps a record of all trades and users who can book them. Critically we introduce a sensible constraint that users cannot be removed from the system while they have Open trades and we have provided a sensible initialisation operation for the system.
-
+  
+\hspace{-0.7cm} Trades are stored in the ‘TradingSystem’ schema, which keeps a record of all trades and users who can manage them. We introduce a sensible constraint that users cannot be removed from the system while they have Open trades, and we have provided a sensible initialisation.
 \begin{schema}{TradingSystem}
 trades: Identifier \pfun Trade \\
 users: \finset Trader \\
 \where
-\forall t: \ran trades | t.status = Open @ t.owner \in users \\ 
+\forall t: \ran trades | t.status = Open @ t.owner \in users 
 \end{schema}
+
+\vspace{-0.2cm}
 
 \begin{schema}{Init}
 TradingSystem \\
@@ -1019,7 +1020,7 @@ trades = \emptyset \\
 users = \emptyset \\
 \end{schema}
 
-\hspace{-0.7cm} This brings us onto operations for creating and closing trades starting with ‘CreateTrade’ that enables trades booked to be capture in the system providing they aren’t there already. The operation definition is more verbose than expected due to ProZ’s lack of support for bindings an the large number of properties on the’Trade’.
+\hspace{-0.7cm} This brings us to operations for creating and closing trades. Creating a trade is a global operation that enables open trades to be booked in the system. Closing a trade is a local operation that specifies a termination date for the trade.
 
 \begin{schema}{CreateTrade}
 \Delta TradingSystem \\
@@ -1032,8 +1033,6 @@ t?: Trade \\
 trades' = trades \cup \{ (t?).identifier \mapsto t? \} \\
 users' = users \\
 \end{schema}
-
-Our other operation is ‘CloseTrade’ which allows the trader to terminate the trade at a date after the start date. This operation has be defined using promotion as one can imagine multiple operations being applicable to an Open trade and this technique provides a clean dividing line between the local state changes for Trade and then how that should propagate to the ‘TradingSystem’.
 
 \begin{schema}{CloseTradeLocal}
 \Delta Trade \\
@@ -1054,6 +1053,8 @@ endDate' = Some(d?) \\
 status' = Closed \\
 \end{schema}
 
+\hspace{-0.7cm} As closing a trade is a local operation, we must specify how local operations for a trade are promoted to the global state TradingSystem so we can define global versions of those operations. While we could have defined close trade as a global operation given the number of properties a trade has this approach helped with readability.
+
 \begin{schema}{PromoteTrade}
 \Delta TradingSystem \\
 \Delta Trade \\
@@ -1066,9 +1067,10 @@ users' = users \\
 \end{schema}
 
 \begin{zed}
-GlobalCloseTrade \defs \exists \Delta Trade @ CloseTradeLocal \land PromoteTrade
+GlobalCloseTrade \defs \exists \Delta Trade @ CloseTradeLocal \land PromoteTrade \\
 \end{zed}
 
+\vspace{0.2cm}
 \hspace{-0.7cm} Finally, we have two operations that allow traders to be added to the system and removed. We provide constraints to make sure the user has not been added yet or does exist to be removed and let the constraint for ‘TradingSystem’ enforce the constraint on when a trader can be removed from the system. 
 
 \begin{schema}{AddTrader}
@@ -1089,16 +1091,21 @@ users' = users \setminus \{ u? \} \\
 trades' = trades \\
 \end{schema}
 
+\hspace{-0.7cm} That completes our trading system model in Z. Schemas allow us to describe what a trade looks like and how it is captured in the trading system. Scheme operators allow us to express how the state can change at both a local and global level and the constraints that must hold for the trading system to be consistent and valid.
+
+\pagebreak
 \subsubsection*{B}
 
-B is another formal method originally developed by Abrial that like Z is based on set theory and first-order logic. The method was developed to address the lack of support in Z for a systematic refinement process to transition to an implementable system. Leveraged as part of the B-Method it saw industry adoption most notably at Alstom and Siemens the design and specification of railway systems.  
-\newline \newline
-B has a lot in common with Z, which will in part been due to Abrial playing a large role in the development of both methods. But at the heart of B specifications are abstract machines where the practitioner can define much of what we could define in Z through defining sets, constants, properties, variables, invariants, initialisation and operations for a given abstract state machine.
-\newline \newline
-The B-method like Z notation before it lacks support for nonfunctional requirements despite being closer to an implementation level description. Like Z, the B-Method is primarily a state-based modelling tool but with greater emphasis on refinement and proof processes. 
+B is another formal method originally developed by Abrial, like Z, based on set theory and first-order logic. The method addresses the lack of support in Z for a systematic refinement process to transition to an implementable system. Leveraged as part of the B-Method, it saw industry adoption, notably at Alstom and Siemens for the design and specification of railway systems. \\
+\newline
+B has a lot in common with Z, partly because Abrial played a large role in developing both methods. But at the heart of B specifications are abstract machines, where the practitioner can define much of what we could define in Z through defining sets, constants, properties, variables, invariants, initialisation, and operations for a given abstract state machine. \\
+\newline
+Like Z, B lacks support for nonfunctional requirements despite being closer to an implementation-level description, which is its key strength. Built-in refinement processes and support for code generation B as part of the B-Method aims to provide users with a tool that can go from specification to executable code. 
+
 \subsubsection*{Trading System Model}
 
-Our trading system model in B starts with the machine definition. Because we need to express date as an option our DateOption free type in Z needs to be declared as a free type in B so we can express the constructor function.
+Our trading system model in B starts with the machine definition because we need to express dates as an option. Our DateOption free type in Z must be declared a full free type in B rather than a set.
+
 \begin{verbatim}
 MACHINE TradingSystem
   FREETYPES
@@ -1107,8 +1114,7 @@ MACHINE TradingSystem
 END
 \end{verbatim}
 
-\hspace{-0.7cm} The remaining free types are expressed as sets in our abstract state machine and mirror the definitions in our Z representation.
-
+\hspace{-0.7cm} The remaining free types are expressed as sets in our abstract state machine and mirror the definitions found in the Z representation of the trading system. The helper types 'IDENTIFIER' and 'DATE' are declared as definitions alongside Trade, which has been modelled as a record in our state machine.
 \begin{verbatim}
 SETS 
   COUNTERPARTY = { Citadel, Millennium };
@@ -1117,11 +1123,6 @@ SETS
   STATUS = { Open, Closed };
   TRADER = { Joe, John, Jane, Joan };
   PREFIX = { T, U, S, V }
-\end{verbatim}
-
-\hspace{-0.7cm} Our helper types such as 'IDENTIFIER' and 'DATE' are declared as definitions. 'TRADE' has been defined as a struct mirroring the schema type we declared in Z spec.
-
-\begin{verbatim}
 DEFINITIONS
   DATE == 20250101..20991231;
   IDENTIFIER == PREFIX * (1..9);
@@ -1130,40 +1131,55 @@ DEFINITIONS
     endDate: DATEOPTION, status: STATUS, owner: TRADER)
 \end{verbatim}
 
-\hspace{-0.7cm} For capturing users of the trading system and trades booked we mirror the global state from the Z specification with a trades and users variables.
+\hspace{-0.7cm} With the key types defined, we can now declare the state that will become part of our machine. Like our Z representation, we will need to store users and trades. Variables have been declared as such and provided with sensible initialisation.
 
 \begin{verbatim}
 VARIABLES
   trades, users
-\end{verbatim}
-
-\begin{verbatim}
 INITIALISATION
   trades := {}
   ||
   users := {}
 \end{verbatim}
     
-\hspace{-0.7cm} The invariants for the machine are declared with trades are partial function mapping identifiers to a trade and users a set of traders. I've also imported our constriants around max quantity, trades that have an end date being marked with the correct state and finally expressing the condition that traders with open trades cannot be removed from the system.
-
+\hspace{-0.7cm} Our state has rules, for example, a maximum trade size that can be added through invariants. Uniquely, where previously in Z, we could split our constraints, here, our list of invariants in the machine needs to cover both our trade record and the state of the machine itself.
 \begin{verbatim}
 INVARIANT
   trades: IDENTIFIER +-> TRADE
   &
   users: POW(TRADER)    
   &
-  !(t).(t: ran(trades) => t'quantity < 100000)
+  !(t).(t: ran(trades) => t'quantity <= 100000)
   &
-  !(t).(t: ran(trades) => t'status = Closed <=> t'endDate /= None)
+  !(t).(t: ran(trades) => t'endDate /= None => t'status = Closed)
   &
   !(t).(t: ran(trades) & t'status = Open => t'owner: users)
 \end{verbatim}
 
-\hspace{-0.7cm} Which moves us finally onto a operations. Starting with adding and removing traders and then creating and closing trades preconditions to make sure we don't invalidate the invariants we specified earlier. 
-\pagebreak
+\hspace{-0.68cm} This finally moves us onto operations, starting with adding and removing traders and then creating and closing trades. Here, preconditions need to be explicitly declared so as not to violate the invariants we declared, and unlike Z, we only need to declare what we’re changing.
 
 \begin{verbatim}
 OPERATIONS
+  AddTrader(u) = 
+    PRE
+      u: TRADER
+      &
+      u/: users
+    THEN
+      users := users \/ {u}
+    END;
+  RemoveTrader(u) = 
+    PRE
+      u: TRADER
+      &
+      u:users
+      &
+      {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
+    THEN
+      users := users - {u}
+    END;
+\end{verbatim}
+\begin{verbatim}
   CreateTrade(t) =
     PRE
       t: TRADE
@@ -1176,64 +1192,40 @@ OPERATIONS
       &
       t'endDate = None 
       &
-      t'quantity < 100000
+      t'quantity <= 100000
     THEN
       trades := trades \/ { t'identifier |-> t }
     END;
-
-  CloseTrade(i, d, o) =
-    PRE
-      i: IDENTIFIER
-      &
-      d: DATE
-      &
-      o: TRADER
-      &
-      i: dom(trades)
-      &
-      trades(i)'startDate < d
-      &
-      trades(i)'status = Open
-      &
-      trades(i)'endDate = None
-      &
-      trades(i)'owner = o 
-    THEN
-      LET trade BE trade = trades(i) IN
-        trades(i) := rec(
-          identifier: trade'identifier, direction: trade'direction, 
-          security: trade'security, quantity: trade'quantity, 
-          startDate: trade'startDate, counterparty: trade'counterparty, 
-          owner: trade'owner, endDate: Some(d), status: Closed
-        )
-      END
-  END 
-\end{verbatim}
-\pagebreak
-
-\begin{verbatim}
-  AddTrader(u) = 
-    PRE
-      u: TRADER
-      &
-      u/: users
-    THEN
-      users := users \/ {u}
-  END;
-
-  RemoveTrader(u) = 
-    PRE
-      u: TRADER
-      &
-      u:users
-      &
-      {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
-    THEN
-      users := users - {u}
-    END;
+    CloseTrade(i, d, o) =
+      PRE
+        i: IDENTIFIER
+        &
+        d: DATE
+        &
+        o: TRADER
+        &
+        i: dom(trades)
+        &
+        trades(i)'startDate < d
+        &
+        trades(i)'status = Open
+        &
+        trades(i)'endDate = None
+        &
+        trades(i)'owner = o
+      THEN
+        LET t BE t = trades(i) IN
+          trades(i) := rec(identifier: t'identifier, direction: t'direction, 
+            security: t'security, quantity: t'quantity, startDate: t'startDate, 
+            counterparty: t'counterparty, owner: t'owner, endDate: Some(d), status: Closed)
+        END
+    END 
 END
 \end{verbatim}
 
+\hspace{-0.68cm} This completes our trading system model in B. The machine definition describes our global state, where we define records, sets, and a free type to add to the type system and declare the state we will store. Through operations, we can detail how the state evolves and ensure consistency by declaring invariants and adding appropriate preconditions to our operations.
+
+\pagebreak
 \subsection*{Benefits and Limitations}
 
 Benefits
