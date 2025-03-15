@@ -1226,42 +1226,39 @@ END
 \hspace{-0.68cm} This completes our trading system model in B. The machine definition describes our global state, where we define records, sets, and a free type to add to the type system and declare the state we will store. Through operations, we can detail how the state evolves and ensure consistency by declaring invariants and adding appropriate preconditions to our operations.
 
 \pagebreak
-\subsection*{Benefits and Limitations}
+\subsection*{Benefits}
 
-Benefits
+Benefits \\
 
 1. Mathematical Precision (status of trade based on end date) \\
 2. Ensuring consistency and correctness (startDate < endDate) \\
 3. Early Detection of Errors (trader not in the system to close the trade) \\ 
 
-Limitations
-
-1. Learning Curve (Show basic method then promotion)
-2. Scaling Models ()
-3. Legacy Tooling
-
 \pagebreak
+\subsection*{Limitations}
+
+1. Learning Curve (Show basic method then promotion) \\
+2. Scaling Models () \\
+3. Legacy Tooling \\
+
 \pagebreak
 \subsection*{Relationship between Z and B}
 
-1. Shared heritage
-2. Z focused on what not how
-3. Z for reasoning and building precise specs 
-4. B step by step refinement 
-5. Code Generation
-6. Better scalability through abstract machine definitions (SEES/USES/EXTENDS)
-7. B end to end process for build specifications and translating them into implementable code.
+1. Common Origin \\
+2. Shared Foundations \\
+3. Z focused on what not how, B refinment to go from spec to executed code
+4. B refinment to go from spec to executed code  \\
 
 \pagebreak
 \subsection*{Conclusions}
 
-State based modelling is a powerful technique that enables users to describe and rationalize systems through formal descriptions of their state, transitions and constraints. \\
+State based modelling is a powerful technique that enables users to describe and rationalise systems through formal descriptions. It typically involves clearly defining states, transitions, and constraints through mathematical notation to produce well-rounded and robust specifications. \\
 \newline
 Z and B both provide great ways to build state descriptions. Z is an excellent whiteboard tool that enables users to express stateful systems with mathematical precision and is supported by an ecosystem of tools. B builds on top of that heritage adding support for step-by-step refinement of models, code generation and many other features that enable users to go from a specification to an executable program. \\
 \newline
-There are clear limitations, a steep learning curve and the need for at least a cursory understanding of mathematical notation are clearly barriers to wider adoption in areas where the technique is not considered mandatory. Even with wider adoption it still holds other limitations around how well formal methods can scale to large and complex systems and how will it integrates with common development practices such as Agile that promotes a just in time approach to requirements.  \\
+There are clear limitations, a steep learning curve and the need for at least a cursory understanding of mathematical notation are clearly barriers to wider adoption in areas where the technique is not considered mandatory. Even with broader adoption, it still holds other limitations around how well formal methods can scale to large and complex systems, and how they will integrate with standard development practices that emphasise building without finalised requirements and designs. \\
 \newline
-Regardless, state-based modelling, the formal methods of Z and B are powerful tools for practitioners who wish to remove ambiguous elements from designs and produce robust specifications for systems that have been refined and tested. While there are limits to how far those benefits will stretch and how they could be adopted by others it remains a powerful asset to be leveraged in developing both simple and complex systems. \\
+Regardless, state-based modelling and the formal methods of Z and B are powerful tools for practitioners who wish to remove ambiguous elements from designs and produce robust specifications for refined and tested systems. While there are limits to how far those benefits will stretch and how they could be adopted by others, they remain a powerful asset to be leveraged in developing both simple and complex systems. 
 \pagebreak
 
 \subsection*{References}
