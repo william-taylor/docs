@@ -721,8 +721,7 @@ OPERATIONS
 
 \subsection*{Part C}
 
-For extending the model I thought it would make sense to expand the detail we capture in the CharacterState schema. We currently have a BeingType free type but it’s rather overloaded and expresses multiple things together that is rather limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character who has powers but may be a villain in the story? For this I’ve created the below replacement free types.
-
+It would make sense to expand the details we capture in the CharacterState schema to extend the model. We currently have a BeingType free type, but it is overloaded and expresses multiple things together, which is somewhat limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character with powers but may be a villain in the story? For this, additional free types have been created below. 
 \begin{zed}
 Mortality ::= mortal | immortal \\
 Alignment ::= neutral | hero | villan \\
@@ -730,14 +729,12 @@ Power ::= enhanced | mutant | magic | cosmic \\
 Species ::= human | alien | titan | android \\
 \end{zed}
 
-\hspace{-0.64cm} This introduces the first state-based problem, if human is now captured as a species how do we capture when the human has powers or not. To solve this problem I’ve created the below free type with a constructor that allows us to express when a character has powers or not.
-
+\hspace{-0.64cm} Introducing the first of many state-based problems: If humans are classified in terms of species, how do we determine whether they have powers? We can solve this with another free type with a constructor that allows us to express whether the character does not have any powers or if they do what it is explicitly. 
 \begin{zed}
 Powers ::= none | some \ldata Power \rdata \\
 \end{zed}
 
-\hspace{-0.64cm} Which means we can now add these details to the CharacterState schema, which has knock on effects. Updating our constraints to deal with these new details, using the new mortality/powers details in place of the existing being type attribute.
-
+\hspace{-0.64cm} As these are related to a character's state and not their core definition, we add these properties to the CharacterState schema, which has knock-on effects. Requiring updates to the constraints to point them at the new morality and powers attributes instead of the existing type attribute.
 \begin{schema}{CharacterState}
 alignment: Alignment \\
 mortality: Mortality \\
@@ -752,10 +749,9 @@ powers = none \implies revives = 1 \\
 lives \leq revives \\
 \end{schema}
 
-\hspace{-0.64cm} This creates another problem, the become human and become superhero operators don’t make much sense with these new attributes. Should an alien immortal become human if they give up their immortality? Can only humans become superheroes? To resolve it made sense to redefine them as a gain powers operator and give up immortality operator that allows our new attributes to be expressed and expand the range of possible states in the model. \\
+\hspace{-0.7cm} This introduces a new problem. We have ChangeToHuman and ChangeToSuperhero operations that do not make much sense with these new attributes. Should an alien immortal become human if they give up their immortality? Can only humans become superheroes? To resolve these restrictions and inconsistencies, redefining them as GainPowers and GiveUpImmortality made sense. This incorporates the new attributes to expand the possible states in the model. \\
 \newline
-The gain powers operator accepts alignment and power as inputs so they can be declared when a character gains a power. The giving up immortality operatory now longer changes the characters species but its preconditions have been updated to look at the new mortality attribute. That precondition change was also needed for the kill character operator and the resurrecting character operator now needed to move to use the powers attribute. Of course, all these operators now needed to detail how the new properties change when the operator is executed. \\
-
+The GainPowers operator now accepts alignment and power as inputs so they can be declared when a character gains superpowers. The GivingUpImmortality operation now updates the character's mortality status, leaving species untouched. Precondition updates were needed for all operations to move to the new attributes and for them to be specified explicitly on how they changed when the operation was executed.
 \begin{schema}{KillCharacterLocal} 
 \Delta CharacterState \\
 \where
@@ -816,7 +812,7 @@ revives' = 1 \\
 status' = alive \\
 \end{schema}
 
-\hspace{-0.64cm} Finally with our redefined and updated operators we need to define them in the context of the global state schema so these local operations can be promoted from CharacterState to the Megaverse. 
+\hspace{-0.7cm} Finally, with our new and updated operations, we need to define them in the context of the global state schema so these local operations can be promoted from CharacterState to the Megaverse.
 
 \begin{zed}
 GlobalGiveUpImmortality \defs \exists \Delta CharacterState @ GiveUpImmortalityLocal \land PromoteCharacterState \\
@@ -825,7 +821,7 @@ GlobalKillCharacter \defs \exists \Delta CharacterState @ KillCharacterLocal \la
 GlobalGainPowers \defs \exists \Delta CharacterState @ GainPowersLocal \land PromoteCharacterState \\
 \end{zed}
 
-\hspace{-0.64cm} Adding these extensions to the B model starts with adding new sets for our new free type definitions. But for the powers free type that needs to express a full free type in B as it can’t be expressed as a set and following that through by adding the new attributes to the CharacterState struct.
+\hspace{-0.64cm} Adding these extensions to the B model starts with new sets for our new free type definitions. However, the Powers free type must be declared a full-free type in B as it cannot be expressed as a set. We can then add the new attributes to the CharacterState struct.
 
 \begin{verbatim}
 SETS 
@@ -846,7 +842,7 @@ DEFINITIONS
       species: SPECIES, lives: 0..3, revives: 1..3, status: LIVING_STATUS);
 \end{verbatim}
 
-\hspace{-0.64cm} With the new attributes stored, we then need to update the corresponding invariants to make use of the new attributes. This then extends to updating the pre-existing preconditions for the add character to timeline operation to make sure we can’t add a character state that violates the invariants we just corrected.
+\hspace{-0.64cm} With the new attributes defined, we need to update the corresponding invariants. This also requires us to update the preconditions for the AddCharacterToTimeline operation to ensure we cannot add a character state that violates the invariants we just changed.
 
 \begin{verbatim}
 INVARIANT
@@ -866,8 +862,7 @@ AddCharacterToTimeline(m, t, c, s) =
     (s'mortality = immortal => (s'revives, s'lives, s'status) = (1, 1, alive))
 \end{verbatim}
 
-\hspace{-0.64cm} Replicating the gain powers and give up immortality operators in B translates very similarly to what we did in the Z. Preconditions are updated and new input parameters for the gain powers operation. 
-
+\hspace{-0.64cm} Replicating the GainPowers and GiveUpImmortality operators in B is similar to what we did in Z. The Preconditions are updated, and the new inputs of alignment and power for GainPowers helphelp express new states in the model.
 \begin{verbatim}
 KillCharacter(c, t) =
   PRE
