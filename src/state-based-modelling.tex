@@ -20,17 +20,16 @@
 
 \subsection*{Part A}
 
-The state model below does make multiple assumptions. As it was stated a timeline can be associated with at most one multiverse, I’ve assumed timelines don’t necessarily need to be linked to a multiverse when created and can be linked at a later point. I’ve also assumed that delete operations should clean up all associated states and not only be available when none exists.
+The state model below makes multiple assumptions. As it was stated that a timeline can be associated with at most one multiverse, I’ve assumed timelines don’t necessarily need to be linked to a multiverse when created, but they can be linked later. it has also been assumed that delete operations should clean up all associated states and not only be available when none exists. \\
 \newline
+The model introduces a timeline and character function through axiomatic definitions to circumvent ProZ's component selection limitations. To meet ProZ's initialisation requirements, one and only one initialisation operation with no inputs has also been defined. \\
 \newline
-The state model does introduce a timeline and character function through axiomatic definitions to get around component selection limitations with ProZ . One and only one initialisation operation with no inputs has also be defined to meet ProZ initialisation requirements.\newline
+Promotion was adopted for the model to split concerns between how we change character state and then record that in the global state increasing readability. Additional functions were also defined to help improve the readability of output operators when extracting a set of character state properties.  \\
 \newline
-Promotion was adopted for the model to split concerns between how we change character state and then record that in the global state increasing readability. Additional functions were defined to help improve the readability of output operators as well.
+Finally, it was assumed that embellishing the types in the model, such as the multiverse, timeline, and character types, was not expected beyond the scope of what was laid out in the scenario to keep the model terse.
 
 \begin{zed}
 [Multiverse, Timeline, Character] \\
-\end{zed}
-\begin{zed}
 LivingStatus ::= dead | alive \\
 BeingType ::= human | immortal | superhero \\
 CharacterLocation == Timeline \cross Character \\
@@ -54,11 +53,11 @@ character: CharacterLocation \fun Character \\
 being: BeingType \\
 status: LivingStatus \\
 lives: 0 \upto 3  \\ 
-revives: 1 \upto 3 \\ 
+maxLives: 1 \upto 3 \\ 
 \where
-being = immortal \implies (revives, lives, status) = (1, 1, alive) \\
-being = human \implies revives = 1 \\
-lives \leq revives \\
+being = immortal \implies (maxLives, lives, status) = (1, 1, alive) \\
+being = human \implies maxLives = 1 \\
+lives \leq maxLives \\
 \end{schema}
 
 \begin{schema}{Megaverse}
@@ -271,7 +270,7 @@ multiverseTimelines' = multiverseTimelines \\
 being \neq immortal \\
 status = alive \\
 lives' = lives - 1 \\
-revives' = revives \\
+maxLives' = maxLives \\
 status' = dead \\
 being' = being \\
 \end{schema}
@@ -282,7 +281,7 @@ being' = being \\
 status = dead \\
 lives > 0 \\
 being = superhero \\
-revives' = revives \\
+maxLives' = maxLives \\
 lives' = lives \\
 being' = being \\
 status' = alive \\
@@ -293,7 +292,7 @@ status' = alive \\
 \where
 being = immortal \\
 lives' = 1 \\
-revives' = 1 \\
+maxLives' = 1 \\
 being' = human \\
 status' = alive \\
 \end{schema}
@@ -305,7 +304,7 @@ l?: 2 \upto 3 \\
 status = alive \\
 being = human \\
 lives' = l? \\
-revives' = l? \\
+maxLives' = l? \\
 status' = status \\
 being' = superhero \\
 \end{schema}
@@ -373,350 +372,342 @@ r! = \{ t: timelines | (t, c?) \in \dom characterStates @  \\
 \t1 t \mapsto beingAndStatus(characterStates((t, c?)))   
 \} \\ 
 \end{schema}
-
 \pagebreak
 
 \subsection*{Part B}
 
+\vspace{0.5cm}
 \begin{verbatim}
 MACHINE Megaverse
-   /* definition split up below for readability */
+  SETS 
+    MULTIVERSE;
+    TIMELINE;
+    CHARACTER;
+    LIVING_STATUS = { dead, alive };
+    BEING_TYPE = { human, immortal, superhero }
+  DEFINITIONS
+    CHARACTER_STATE == 
+      struct(being: BEING_TYPE, status: LIVING_STATUS, lives: 0..3, maxLives: 1..3);
+    CHARACTER_LOCATION == TIMELINE * CHARACTER;
+    BEING_AND_STATUS(s) == (s'being, s'status) 
+  VARIABLES
+    multiverses, timelines, multiverseTimelines, characters, characterStates
+  INVARIANT
+    multiverses: POW(MULTIVERSE)
+    &
+    timelines: POW(TIMELINE)
+    & 
+    characters: POW(CHARACTER)
+    &
+    multiverseTimelines: MULTIVERSE <-> TIMELINE
+    &
+    characterStates: CHARACTER_LOCATION +-> CHARACTER_STATE
+    &
+    dom(multiverseTimelines) <: multiverses
+    &
+    ran(multiverseTimelines) <: timelines
+    &
+    { p•p: dom(characterStates) | prj1(p) } <: timelines
+    &
+    { p•p: dom(characterStates) | prj2(p) } <: characters
+    &
+    !(s).(s: ran(characterStates) => s'lives <= s'maxLives)
+    &
+    !(s).(s: ran(characterStates) & s'being = human => s'maxLives = 1)
+    &
+    !(s).(s: ran(characterStates) & s'being = immortal =>
+        (s'maxLives, s'lives, s'status) = (1, 1, alive))
+    &
+    !(t).(t: timelines => 
+        card({ m•m: multiverses & (m,t): multiverseTimelines | (m,t) }) <= 1)
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+  INITIALISATION
+    multiverses := {}
+    ||
+    timelines := {}
+    ||
+    characters := {}
+    ||
+    multiverseTimelines := {}
+    ||
+    characterStates := {}
+  OPERATIONS
+    CreateMultiverse(m) =
+      PRE
+        m: MULTIVERSE 
+        &
+        m/: multiverses
+      THEN
+        multiverses := multiverses \/ { m }
+      END;
+    ResetMultiverse(m) =
+      PRE
+        m: MULTIVERSE 
+        &
+        m: multiverses
+        &
+        multiverseTimelines[{ m }] /= {}
+      THEN
+        timelines := timelines \ multiverseTimelines[{ m }];
+        characterStates := { p|p: dom(characterStates) & 
+            prj1(p): multiverseTimelines[{ m }] } <<| characterStates; 
+        multiverseTimelines := { m } <<| multiverseTimelines
+      END;
+    DeleteMultiverse(m) =
+      PRE
+        m: MULTIVERSE
+        &
+        m: multiverses
+      THEN
+        multiverses := multiverses \ { m };
+        timelines := timelines \ multiverseTimelines[{ m }];
+        characterStates := { p|p: dom(characterStates) & 
+          prj1(p): multiverseTimelines[{ m }] } <<| characterStates; 
+        multiverseTimelines := { m } <<| multiverseTimelines
+      END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+    CreateTimeline(t) =
+      PRE
+        t: TIMELINE
+        &
+        t/: timelines
+      THEN
+        timelines := timelines \/ { t }
+      END;
+    ResetTimeline(t) =
+      PRE
+        t: TIMELINE
+        &
+        t: timelines
+        &
+        { p|p: dom(characterStates) & t = prj1(p) } /= {}
+      THEN
+        multiverseTimelines := multiverseTimelines |>> { t }; 
+        characterStates := { p|p: dom(characterStates) & prj1(p) = t }
+            <<| characterStates 
+      END;
+    DeleteTimeline(t) =
+      PRE
+        t: TIMELINE
+        &
+        t: timelines
+      THEN
+        multiverseTimelines := multiverseTimelines |>> { t }; 
+        timelines := timelines \ { t };
+        characterStates := { p|p: dom(characterStates) & prj1(p) = t } 
+            <<| characterStates
+      END;
+    AddTimelineToMultiverse(t, m) =
+      PRE
+        t: TIMELINE
+        &
+        m: MULTIVERSE
+        &
+        t: timelines
+        &
+        m: multiverses
+        &
+        t /: ran(multiverseTimelines)
+      THEN
+        multiverseTimelines := multiverseTimelines \/ { m |-> t }
+      END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+    RemoveTimelineFromMultiverse(t, m) =
+      PRE
+        t: TIMELINE
+        &
+        m: MULTIVERSE
+        &
+        t: timelines
+        &
+        m: multiverses
+        &
+        m |-> t : multiverseTimelines
+      THEN
+        multiverseTimelines := multiverseTimelines \ { m |-> t }
+      END;
+    MoveTimeline(t, s, d) =
+      PRE
+        t: TIMELINE
+        & 
+        s: MULTIVERSE
+        &
+        d: MULTIVERSE
+        &
+        t: timelines
+        &
+        s /= d
+        &
+        s |-> t : multiverseTimelines
+        &
+        {s, d} <: multiverses
+      THEN
+        multiverseTimelines := multiverseTimelines \ { s |-> t } \/ { d |-> t }
+      END;
+    CreateCharacter(c) =
+      PRE
+        c: CHARACTER 
+        &
+        c/: characters
+      THEN
+        characters := characters \/ { c }
+      END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+    DeleteCharacter(c) =
+      PRE
+        c: CHARACTER
+        &
+        c: characters
+      THEN
+        characters := characters \ { c };
+        characterStates := { p•p: dom(characterStates) & prj2(p) = c | 
+          (prj1(p), c) } <<| characterStates 
+      END;
+    AddCharacterToTimeline(m, t, c, s) =
+      PRE
+        m: MULTIVERSE
+        &
+        t: TIMELINE
+        &
+        c: CHARACTER
+        &
+        s: CHARACTER_STATE
+        &
+        c: characters
+        &
+        s'status = alive
+        & 
+        s'lives /= 0 
+        &
+        s'lives <= s'maxLives
+        &
+        (m |-> t): multiverseTimelines  
+        &
+        (t |-> c)/: dom(characterStates)
+        &
+        (s'being = human => s'maxLives = 1)
+        &
+        (s'being = immortal => (s'maxLives, s'lives, s'status) = (1, 1, alive))
+      THEN
+        characterStates := characterStates \/ { (t |-> c) |-> s }
+      END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+    RemoveCharacterFromTimeline(m, t, c) =
+      PRE
+        m: MULTIVERSE
+        &
+        t: TIMELINE
+        &
+        c: CHARACTER 
+        &
+        (m |-> t): multiverseTimelines
+        &
+        (t |-> c): dom(characterStates)
+      THEN
+        characterStates := { t |-> c } <<| characterStates
+      END;
+    ChangeToHuman(t,c) =
+      PRE
+        t: TIMELINE 
+        &
+        c: CHARACTER
+        &
+        (t,c): dom(characterStates)
+        &
+        characterStates((t,c))'being = immortal
+      THEN
+        characterStates(t,c) := rec(being: human, status: alive, lives: 1, maxLives: 1)
+      END;
+    ChangeToSuperhero(t,c,l) =
+      PRE
+        t: TIMELINE 
+        &
+        c: CHARACTER
+        &
+        l: 2..3
+        &
+        (t,c): dom(characterStates)
+        &
+        characterStates((t,c))'being = human
+        & 
+        characterStates((t,c))'status = alive
+      THEN
+        characterStates(t,c) := rec(being: superhero, status: alive, lives: l, maxLives: l)
+      END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+    KillCharacter(c, t) =
+      PRE
+        t: TIMELINE 
+        &
+        c: CHARACTER
+        &
+        (t,c): dom(characterStates)
+        &
+        characterStates((t,c))'status = alive
+        &
+        characterStates((t, c))'being: { human, superhero }
+      THEN
+        LET s BE s = characterStates(t,c) IN 
+          characterStates(t,c) := 
+            rec(being: s'being, status: dead, lives: s'lives - 1, maxLives: s'maxLives)
+        END
+      END;
+    ReanimateCharacter(t, c) =
+      PRE
+        t: TIMELINE 
+        &
+        c: CHARACTER
+        &
+        (t,c): dom(characterStates)
+        &
+        characterStates((t,c))'status = dead
+        &
+        characterStates((t,c))'lives > 0
+      THEN
+        LET s BE s = characterStates(t,c) IN 
+          characterStates(t,c) := 
+            rec(being: s'being, status: alive, lives: s'lives, maxLives: s'maxLives)
+        END
+      END;
+    r <-- LivingStatusForCharactersInTimeline(t) = 
+      PRE
+        t: TIMELINE
+        &
+        t: timelines
+        &
+        r: POW(CHARACTER * LIVING_STATUS)
+      THEN 
+        r := { c•c: characters & (t,c): dom(characterStates) | 
+          c |-> characterStates(t, c)'status }
+      END;
+\end{verbatim}
+\pagebreak
+\begin{verbatim}
+    r <-- CharacterStatusAcrossAllTimelines(c) =
+      PRE
+        c: CHARACTER
+        &
+        c: characters
+        &
+        r: POW(TIMELINE * (BEING_TYPE * LIVING_STATUS))
+      THEN
+        r := { t•t: timelines & (t,c): dom(characterStates) | 
+          t |-> BEING_AND_STATUS(characterStates(t,c)) }
+      END
 END
 \end{verbatim}
-
-\begin{verbatim}
-SETS 
-  MULTIVERSE;
-  TIMELINE;
-  CHARACTER;
-  LIVING_STATUS = { dead, alive };
-  BEING_TYPE = { human, immortal, superhero }
-DEFINITIONS
-  CHARACTER_STATE == 
-    struct(being: BEING_TYPE, status: LIVING_STATUS, lives: 0..3, revives: 1..3);
-  CHARACTER_LOCATION == TIMELINE * CHARACTER;
-  BEING_AND_STATUS(s) == (s'being, s'status) 
-VARIABLES
-  multiverses, timelines, multiverseTimelines, characters, characterStates
-INVARIANT
-  multiverses: POW(MULTIVERSE)
-  &
-  timelines: POW(TIMELINE)
-  & 
-  characters: POW(CHARACTER)
-  &
-  multiverseTimelines: MULTIVERSE <-> TIMELINE
-  &
-  characterStates: CHARACTER_LOCATION +-> CHARACTER_STATE
-  &
-  dom(multiverseTimelines) <: multiverses
-  &
-  ran(multiverseTimelines) <: timelines
-  &
-  { p•p: dom(characterStates) | prj1(p) } <: timelines
-  &
-  { p•p: dom(characterStates) | prj2(p) } <: characters
-  &
-  !(s).(s: ran(characterStates) => s'lives <= s'revives)
-  &
-  !(s).(s: ran(characterStates) & s'being = human => s'revives = 1)
-  &
-  !(s).(s: ran(characterStates) & s'being = immortal =>
-      (s'revives, s'lives, s'status) = (1, 1, alive))
-  &
-  !(t).(t: timelines => 
-      card({ m•m: multiverses & (m,t): multiverseTimelines | (m,t) }) <= 1)
-\end{verbatim}
-
-\begin{verbatim}
-INITIALISATION
-  multiverses := {}
-  ||
-  timelines := {}
-  ||
-  characters := {}
-  ||
-  multiverseTimelines := {}
-  ||
-  characterStates := {}
-\end{verbatim}
-
-\begin{verbatim}
-OPERATIONS
-  CreateMultiverse(m) =
-    PRE
-      m: MULTIVERSE 
-      &
-      m/: multiverses
-    THEN
-      multiverses := multiverses \/ { m }
-    END;
-  ResetMultiverse(m) =
-    PRE
-      m: MULTIVERSE 
-      &
-      m: multiverses
-      &
-      multiverseTimelines[{ m }] /= {}
-    THEN
-      timelines := timelines \ multiverseTimelines[{ m }];
-      characterStates := { p|p: dom(characterStates) & 
-          prj1(p): multiverseTimelines[{ m }] } <<| characterStates; 
-      multiverseTimelines := { m } <<| multiverseTimelines
-    END;
-  DeleteMultiverse(m) =
-    PRE
-      m: MULTIVERSE
-      &
-      m: multiverses
-    THEN
-      multiverses := multiverses \ { m };
-      timelines := timelines \ multiverseTimelines[{ m }];
-      characterStates := { p|p: dom(characterStates) & 
-        prj1(p): multiverseTimelines[{ m }] } <<| characterStates; 
-      multiverseTimelines := { m } <<| multiverseTimelines
-    END;
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-  CreateTimeline(t) =
-    PRE
-      t: TIMELINE
-      &
-      t/: timelines
-    THEN
-      timelines := timelines \/ { t }
-    END;
-  ResetTimeline(t) =
-    PRE
-      t: TIMELINE
-      &
-      t: timelines
-      &
-      { p|p: dom(characterStates) & t = prj1(p) } /= {}
-    THEN
-      multiverseTimelines := multiverseTimelines |>> { t }; 
-      characterStates := { p|p: dom(characterStates) & prj1(p) = t }
-          <<| characterStates 
-    END;
-  DeleteTimeline(t) =
-    PRE
-      t: TIMELINE
-      &
-      t: timelines
-    THEN
-      multiverseTimelines := multiverseTimelines |>> { t }; 
-      timelines := timelines \ { t };
-      characterStates := { p|p: dom(characterStates) & prj1(p) = t } 
-          <<| characterStates
-    END;
-  AddTimelineToMultiverse(t, m) =
-    PRE
-      t: TIMELINE
-      &
-      m: MULTIVERSE
-      &
-      t: timelines
-      &
-      m: multiverses
-      &
-      t /: ran(multiverseTimelines)
-    THEN
-      multiverseTimelines := multiverseTimelines \/ { m |-> t }
-    END;
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-  RemoveTimelineFromMultiverse(t, m) =
-    PRE
-      t: TIMELINE
-      &
-      m: MULTIVERSE
-      &
-      t: timelines
-      &
-      m: multiverses
-      &
-      m |-> t : multiverseTimelines
-    THEN
-      multiverseTimelines := multiverseTimelines \ { m |-> t }
-    END;
-  MoveTimeline(t, s, d) =
-    PRE
-      t: TIMELINE
-      & 
-      s: MULTIVERSE
-      &
-      d: MULTIVERSE
-      &
-      t: timelines
-      &
-      s /= d
-      &
-      s |-> t : multiverseTimelines
-      &
-      {s, d} <: multiverses
-    THEN
-      multiverseTimelines := multiverseTimelines \ { s |-> t } \/ { d |-> t }
-    END;
-  CreateCharacter(c) =
-    PRE
-      c: CHARACTER 
-      &
-      c/: characters
-    THEN
-      characters := characters \/ { c }
-    END;
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-  DeleteCharacter(c) =
-    PRE
-      c: CHARACTER
-      &
-      c: characters
-    THEN
-      characters := characters \ { c };
-      characterStates := { p•p: dom(characterStates) & prj2(p) = c | 
-        (prj1(p), c) } <<| characterStates 
-    END;
-  AddCharacterToTimeline(m, t, c, s) =
-    PRE
-      m: MULTIVERSE
-      &
-      t: TIMELINE
-      &
-      c: CHARACTER
-      &
-      s: CHARACTER_STATE
-      &
-      c: characters
-      &
-      s'status = alive
-      & 
-      s'lives /= 0 
-      &
-      s'lives <= s'revives
-      &
-      (m |-> t): multiverseTimelines  
-      &
-      (t |-> c)/: dom(characterStates)
-      &
-      (s'being = human => s'revives = 1)
-      &
-      (s'being = immortal => (s'revives, s'lives, s'status) = (1, 1, alive))
-    THEN
-      characterStates := characterStates \/ { (t |-> c) |-> s }
-    END;
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-  RemoveCharacterFromTimeline(m, t, c) =
-    PRE
-      m: MULTIVERSE
-      &
-      t: TIMELINE
-      &
-      c: CHARACTER 
-      &
-      (m |-> t): multiverseTimelines
-      &
-      (t |-> c): dom(characterStates)
-    THEN
-      characterStates := { t |-> c } <<| characterStates
-    END;
-  ChangeToHuman(t,c) =
-    PRE
-      t: TIMELINE 
-      &
-      c: CHARACTER
-      &
-      (t,c): dom(characterStates)
-      &
-      characterStates((t,c))'being = immortal
-    THEN
-      characterStates(t,c) := rec(being: human, status: alive, lives: 1, revives: 1)
-    END;
-  ChangeToSuperhero(t,c,l) =
-    PRE
-      t: TIMELINE 
-      &
-      c: CHARACTER
-      &
-      l: 2..3
-      &
-      (t,c): dom(characterStates)
-      &
-      characterStates((t,c))'being = human
-      & 
-      characterStates((t,c))'status = alive
-    THEN
-      characterStates(t,c) := rec(being: superhero, status: alive, lives: l, revives: l)
-    END;
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-  KillCharacter(c, t) =
-    PRE
-      t: TIMELINE 
-      &
-      c: CHARACTER
-      &
-      (t,c): dom(characterStates)
-      &
-      characterStates((t,c))'status = alive
-      &
-      characterStates((t, c))'being: { human, superhero }
-    THEN
-      LET s BE s = characterStates(t,c) IN 
-        characterStates(t,c) := 
-          rec(being: s'being, status: dead, lives: s'lives - 1, revives: s'revives)
-      END
-    END;
-  ReanimateCharacter(t, c) =
-    PRE
-      t: TIMELINE 
-      &
-      c: CHARACTER
-      &
-      (t,c): dom(characterStates)
-      &
-      characterStates((t,c))'status = dead
-      &
-      characterStates((t,c))'lives > 0
-    THEN
-      LET s BE s = characterStates(t,c) IN 
-        characterStates(t,c) := 
-          rec(being: s'being, status: alive, lives: s'lives, revives: s'revives)
-      END
-    END;
-  r <-- LivingStatusForCharactersInTimeline(t) = 
-    PRE
-      t: TIMELINE
-      &
-      t: timelines
-      &
-      r: POW(CHARACTER * LIVING_STATUS)
-    THEN 
-      r := { c•c: characters & (t,c): dom(characterStates) | 
-        c |-> characterStates(t, c)'status }
-    END;
-\end{verbatim}
-\pagebreak
-\begin{verbatim}
-  r <-- CharacterStatusAcrossAllTimelines(c) =
-    PRE
-      c: CHARACTER
-      &
-      c: characters
-      &
-      r: POW(TIMELINE * (BEING_TYPE * LIVING_STATUS))
-    THEN
-      r := { t•t: timelines & (t,c): dom(characterStates) | 
-        t |-> BEING_AND_STATUS(characterStates(t,c)) }
-    END
-\end{verbatim}
-
 \pagebreak
 
 \subsection*{Part C}
@@ -735,23 +726,25 @@ Powers ::= none | some \ldata Power \rdata \\
 \end{zed}
 
 \hspace{-0.64cm} As these are related to a character's state and not their core definition, we add these properties to the CharacterState schema, which has knock-on effects. Requiring updates to the constraints to point them at the new morality and powers attributes instead of the existing type attribute.
+
 \begin{schema}{CharacterState}
 alignment: Alignment \\
 mortality: Mortality \\
 powers: Powers \\
 species: Species \\
 lives: 0 \upto 3  \\ 
-revives: 1 \upto 3 \\ 
+maxLives: 1 \upto 3 \\ 
 status: LivingStatus \\
 \where
-mortality = immortal \implies (revives, lives, status) = (1, 1, alive) \\
-powers = none \implies revives = 1 \\ 
-lives \leq revives \\
+mortality = immortal \implies (maxLives, lives, status) = (1, 1, alive) \\
+powers = none \implies maxLives = 1 \\ 
+lives \leq maxLives \\
 \end{schema}
 
 \hspace{-0.7cm} This introduces a new problem. We have ChangeToHuman and ChangeToSuperhero operations that do not make much sense with these new attributes. Should an alien immortal become human if they give up their immortality? Can only humans become superheroes? To resolve these restrictions and inconsistencies, redefining them as GainPowers and GiveUpImmortality made sense. This incorporates the new attributes to expand the possible states in the model. \\
 \newline
 The GainPowers operator now accepts alignment and power as inputs so they can be declared when a character gains superpowers. The GivingUpImmortality operation now updates the character's mortality status, leaving species untouched. Precondition updates were needed for all operations to move to the new attributes and for them to be specified explicitly on how they changed when the operation was executed.
+
 \begin{schema}{KillCharacterLocal} 
 \Delta CharacterState \\
 \where
@@ -762,7 +755,7 @@ mortality' = mortality \\
 powers' = powers \\ 
 species' = species \\
 lives' = lives - 1 \\
-revives' = revives \\
+maxLives' = maxLives \\
 status' = dead \\
 \end{schema}
 
@@ -777,7 +770,7 @@ mortality' = mortality \\
 powers' = powers \\ 
 species' = species \\
 lives' = lives \\
-revives' = revives \\
+maxLives' = maxLives \\
 status' = alive \\
 \end{schema}
 
@@ -795,7 +788,7 @@ mortality' = mortality \\
 powers' = some(p?) \\ 
 species' = species \\
 lives' = l? \\
-revives' = l? \\
+maxLives' = l? \\
 status' = status \\
 \end{schema}
 
@@ -808,7 +801,7 @@ mortality' = mortality \\
 powers' = powers \\ 
 species' = species \\
 lives' = 1 \\
-revives' = 1 \\
+maxLives' = 1 \\
 status' = alive \\
 \end{schema}
 
@@ -830,16 +823,12 @@ SETS
   ALIGNMENT = { neutral, hero, villan };
   POWER = { enhanced, mutant, magic, cosmic };
   SPECIES = { human, alien, titan, android }
-\end{verbatim}
-\begin{verbatim}
 FREETYPES
   POWERS = NONE, SOME(POWER)
-\end{verbatim}
-\begin{verbatim}
 DEFINITIONS
   CHARACTER_STATE == 
     struct(alignment: ALIGNMENT, mortality: MORTALITY, powers: POWERS, 
-      species: SPECIES, lives: 0..3, revives: 1..3, status: LIVING_STATUS);
+      species: SPECIES, lives: 0..3, maxLives: 1..3, status: LIVING_STATUS);
 \end{verbatim}
 
 \hspace{-0.64cm} With the new attributes defined, we need to update the corresponding invariants. This also requires us to update the preconditions for the AddCharacterToTimeline operation to ensure we cannot add a character state that violates the invariants we just changed.
@@ -847,22 +836,22 @@ DEFINITIONS
 \begin{verbatim}
 INVARIANT
   /* ... */
-  !(s).(s: ran(characterStates) & s'powers = NONE => s'revives = 1)
+  !(s).(s: ran(characterStates) & s'powers = NONE => s'maxLives = 1)
   &
   !(s).(s: ran(characterStates) & s'mortality = immortal 
-      => (s'revives, s'lives, s'status) = (1, 1, alive))
+      => (s'maxLives, s'lives, s'status) = (1, 1, alive))
 \end{verbatim}
 
 \begin{verbatim}
 AddCharacterToTimeline(m, t, c, s) =
   PRE
     /* ... */
-    (s'powers /= NONE => s'revives = 1)
+    (s'powers /= NONE => s'maxLives = 1)
     &
-    (s'mortality = immortal => (s'revives, s'lives, s'status) = (1, 1, alive))
+    (s'mortality = immortal => (s'maxLives, s'lives, s'status) = (1, 1, alive))
 \end{verbatim}
 
-\hspace{-0.64cm} Replicating the GainPowers and GiveUpImmortality operators in B is similar to what we did in Z. The Preconditions are updated, and the new inputs of alignment and power for GainPowers helphelp express new states in the model.
+\hspace{-0.64cm} Replicating the GainPowers and GiveUpImmortality operators in B is similar to what we did in Z. The Preconditions are updated, and the new inputs of alignment and power for GainPowers helps express new states in the model.
 \begin{verbatim}
 KillCharacter(c, t) =
   PRE
@@ -879,7 +868,7 @@ KillCharacter(c, t) =
     LET s BE s = characterStates(t,c) IN 
       characterStates(t,c) := 
         rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
-          species: s'species, lives: s'lives - 1, revives: s'revives, status: dead)
+          species: s'species, lives: s'lives - 1, maxLives: s'maxLives, status: dead)
     END
   END;
 \end{verbatim}
@@ -899,7 +888,7 @@ ResurrectCharacter(t, c) =
     LET s BE s = characterStates(t,c) IN 
       characterStates(t,c) := 
         rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
-          species: s'species, lives: s'lives, revives: s'revives, status: alive)
+          species: s'species, lives: s'lives, maxLives: s'maxLives, status: alive)
     END
   END;
 \end{verbatim}
@@ -926,7 +915,7 @@ ResurrectCharacter(t, c) =
       LET s BE s = characterStates(t,c) IN
         characterStates(t,c) := 
           rec(alignment: a, mortality: s'mortality, powers: SOME(p), 
-            species: s'species, lives: l, revives: l, status: alive)
+            species: s'species, lives: l, maxLives: l, status: alive)
       END
     END;
 
@@ -943,37 +932,38 @@ ResurrectCharacter(t, c) =
       LET s BE s = characterStates(t,c) IN
         characterStates(t,c) := 
           rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
-            species: s'species, lives: 1, revives: 1, status: alive)
+            species: s'species, lives: 1, maxLives: 1, status: alive)
       END
     END;
 \end{verbatim}
-\pagebreak
 
+\hspace{-0.7cm} That completes the extension for both models. Both can now express various character states through the new attributes, allowing a character’s allegiance, mortality, powers, or species to change across timelines. This provides a richer model that allows new combinations and permutations of its characters.
+
+\pagebreak
 \section*{Q2}
 
 \subsection*{Introduction}
 
-Software based systems can be complex and are often at a scope that is too large for any one developer to fully comprehend. State based modelling is a powerful technique that can help bring order to overloaded complexity through description, refinement and proof that helps establish the fundamental properties and behaviours of stateful systems.
-\newline \newline
-To illustrate the benefits and limitations of state-based modelling in general and the relationship between Z and B, a basic trading system model has been designed for the capture and storage of securities lending trades. These are transactions between parties who wish to borrow or loan a given security in return for a nominal fee and are a critical underpinning of the financial system.
-\newline \newline
-By leveraging this model and with additional support through referenced case studies and papers we aim to illustrate the benefits and limitations of state-based modelling. Furthermore, by navigating from a Z to a B, representation of our trading system, we aim to highlight the shared heritage of both Z notation and the B-Method and how their bespoke differences provide unique opportunities to be leveraged in a variety of scenarios.
+Software systems can be complex and often have a scope too large for any developer to comprehend fully. State-based modelling is a powerful technique that can help bring order to complexity through description, refinement, and proof, establishing a system's properties and behaviours. \\
+\newline
+To illustrate the benefits and limitations of state-based modelling in general and the relationship between Z and B, a basic trading system model has been designed to capture and store securities lending trades. These are transactions between parties who wish to borrow or loan a given security in return for a nominal fee and are a critical underpinning of the financial system. \\
+\newline
+By leveraging this model and providing additional support through referenced case studies and papers, we aim to illustrate the benefits and limitations of state-based modelling. Furthermore, by navigating from a Z to a B representation of our trading system, we aim to highlight their shared heritage and how their bespoke differences provide unique opportunities to be leveraged. 
 
 \subsection*{State based modelling}
 
-State-based modelling is a technique for describing systems by defining their state, the constraints and guards that apply to that state, and the transitions that states can undergo via operations. Therefore resulting in a comprehensive and structured definition of the system's model and associated behaviours, capabilities, and limitations.
-\newline \newline
-By formally defining state normally through mathematical notation the aim is to remove ambiguities and systematically prove model correctness and consistency as it transitions through various states.  Capturing and resolving errors in model definitions before implementation in a software system improves system safety.
-\newline \newline
-Various methods and tools exist with their own sets of capabilities. Two more popular methods in use in academia and industry are Z notation and the B-Method. They share a common heritage, and both can be leveraged for writing formal specifications. We will use both to highlight the benefits and limitations of each method as well as the common attributes that apply to state-based modelling in general.
+State-based modelling describes systems by defining their state, the constraints and guards that apply, and the transitions that states can undergo via operations. This results in a comprehensive and structured definition of the system’s model and associated behaviours, capabilities, and limitations. \\
+\newline
+By formally defining state, typically through mathematical notation, the aim is to remove ambiguities and systematically prove model correctness and consistency as it transitions through various states. Capturing and resolving errors in model definitions before implementation to help streamline the implementation's delivery and improve the system's safety. \\
+\newline
+Various options exist, with Z and B being popular formal methods in academia and industry. They share a common heritage, and both can be leveraged for writing formal specifications. We will use both to highlight the benefits and limitations of each method as well as the common attributes that apply to state-based modelling in general.
 
 \subsection*{Z notation}
-
-Z notation is a formal specification language based on set theory and first-order logic, designed to describe state and associated behaviours with mathematical precision. Initially conceived by Jean Raymond Abrial at the University of Grenoble it was refined in collaboration with the Oxford University Computing Library. Since then, it has found use in industry at IBM, Rolls-Royce and British Aerospace for verifying system specifications.
-\newline \newline
-At the heart of Z is the mathematical language that allows practitioners to work with sets, bags, sequences, types, functions, relations and logic that can then be collected and organised into schemas where declarations are made alongside constraints. These schemas form the basis of how Z can be leveraged to describe the model of a system, not just from describing the state in the system, types of properties and the constraints bound to them but from how the system’s state can transition through local and global operations.
-\newline \newline
-Z is, however, not intended for the description and specification of nonfunctional properties such as usability, performance, security, efficiency, or reliability. Implementation level details on how logic could be concurrently scheduled, or state storage optimised in memory are not the domain of Z. Additional tools can be leveraged to fill that gap and complement the state-based modelling capabilities found in Z.
+Z notation is a formal specification language based on set theory and first-order logic, designed to describe state and associated behaviours with mathematical precision. Initially conceived by Jean Raymond Abrial at the University of Grenoble, it was refined in collaboration with the Oxford University Computing Library and found use at IBM, Rolls-Royce, and British Aerospace. \\
+\newline
+At the heart of Z is the mathematical language that allows practitioners to work with sets, bags, sequences, types, functions, relations and logic that can then be collected and organised into schemas where declarations can be made with constraints. These schemas form the basis of how Z can be leveraged to describe the model of a system, not just from describing the state in the system, but how the system’s state can transition through schema operations. \\
+\newline
+Z is, however, not intended for the description and specification of nonfunctional properties such as usability, performance, security, efficiency, or reliability. It's designed to describe what, not how, implementation level details is not the domain of Z. Additional tools can be leveraged to fill that gap and complement the state-based modelling capabilities found in Z. 
 
 \subsubsection*{Trading System Model}
 
@@ -988,12 +978,12 @@ DateOption ::= None | Some \ldata Date \rdata \\
 \hspace{-0.62cm} I've also defined the following free types: Security, Trader and Counterparty that represents the type of security being traded, the trader themselves and the counterparty the trade is with for brevity.  Direction, Status and Prefix have been defined as they are suitable representations for the properties they will represent.
 
 \begin{zed}
-Counterparty ::= Citadel | Millennium  \\
+Counterparty ::= Citadel | Millennium  \\ 
 Direction ::= Borrow | Loan \\
 Security ::= Bond | Stock \\
 Status ::= Open | Closed \\  
 Trader ::= Joe | John | Jane | Joan \\
-Prefix ::= T | U | S | V \\
+Prefix ::= T | S | U \\
 \end{zed}
 
 \hspace{-0.62cm} Which now allows us to define our Trade schema which will define our local state, capturing the identifier of the trade and its associated properties. A maximum quantity size 100,000 has been expressed through our constraints in additional adding a guard that when a trade has ended it is marked as Closed. 
@@ -1004,20 +994,20 @@ direction: Direction \\
 security: Security \\
 quantity: \nat_1 \\
 startDate: Date \\
-endDate: OptionalDate \\ 
+endDate: DateOption \\ 
 counterparty: Counterparty \\
 status: Status \\
 owner: Trader \\
 \where
-status = Closed \iff endDate \neq None \\
 quantity \leq 100000 \\
+status = Closed \iff endDate \neq None \\
 \end{schema}
 
 \hspace{-0.7cm} Trades are stored in a global state the ‘TradingSystem’ schema which keeps a record of all trades and users who can book them. Critically we introduce a sensible constraint that users cannot be removed from the system while they have Open trades and we have provided a sensible initialisation operation for the system.
 
 \begin{schema}{TradingSystem}
 trades: Identifier \pfun Trade \\
-users: \power Trader \\
+users: \finset Trader \\
 \where
 \forall t: \ran trades | t.status = Open @ t.owner \in users \\ 
 \end{schema}
@@ -1045,26 +1035,39 @@ users' = users \\
 
 Our other operation is ‘CloseTrade’ which allows the trader to terminate the trade at a date after the start date. This operation has be defined using promotion as one can imagine multiple operations being applicable to an Open trade and this technique provides a clean dividing line between the local state changes for Trade and then how that should propagate to the ‘TradingSystem’.
 
-\begin{schema}{CloseTrade}
-\Delta TradingSystem \\
-i?: Identifier \\
+\begin{schema}{CloseTradeLocal}
+\Delta Trade \\
 d?: Date \\ 
+o?: Trader \\
+\where
+status = Open \\ 
+startDate < d? \\
+owner = o? \\
+startDate' = startDate \\
+identifier' = identifier \\
+direction' = direction \\
+counterparty' = counterparty \\
+security' = security \\
+quantity' = quantity \\
+owner' =  owner \\
+endDate' = Some(d?) \\ 
+status' = Closed \\
+\end{schema}
+
+\begin{schema}{PromoteTrade}
+\Delta TradingSystem \\
+\Delta Trade \\
+i?: Identifier \\
 \where
 (i?) \in \dom trades \\
-(trades(i?)).status = Open \\ 
-(trades(i?)).startDate < d? \\
+\theta Trade = trades(i?) \\
+trades' = trades \oplus \{ i? \mapsto \theta Trade' \} \\
 users' = users \\
-(\{ i? \} \ndres trades') = \{ i? \} \ndres trades \\
-(trades'(i?)).startDate = (trades(i?)).startDate \\
-(trades'(i?)).identifier = (trades(i?)).identifier \\
-(trades'(i?)).direction = (trades(i?)).direction \\
-(trades'(i?)).counterparty = (trades(i?)).counterparty \\
-(trades'(i?)).security = (trades(i?)).security \\
-(trades'(i?)).quantity = (trades(i?)).quantity \\
-(trades'(i?)).owner = (trades(i?)).owner \\
-(trades'(i?)).endDate = Some(d?) \\ 
-(trades'(i?)).status = Closed \\
 \end{schema}
+
+\begin{zed}
+GlobalCloseTrade \defs \exists \Delta Trade @ CloseTradeLocal \land PromoteTrade
+\end{zed}
 
 \hspace{-0.7cm} Finally, we have two operations that allow traders to be added to the system and removed. We provide constraints to make sure the user has not been added yet or does exist to be removed and let the constraint for ‘TradingSystem’ enforce the constraint on when a trader can be removed from the system. 
 
@@ -1092,8 +1095,7 @@ B is another formal method originally developed by Abrial that like Z is based o
 \newline \newline
 B has a lot in common with Z, which will in part been due to Abrial playing a large role in the development of both methods. But at the heart of B specifications are abstract machines where the practitioner can define much of what we could define in Z through defining sets, constants, properties, variables, invariants, initialisation and operations for a given abstract state machine.
 \newline \newline
-The B-method like Z notation before it lacks support for nonfunctional requirements despite being closer to an implementation level description. Like Z, the B-Method is primarily a state-based modelling tool but with greater emphasis on refinement and proof processes. Describing properties outside of this domain will require working with additional tools or formal methods such as Atelier B, Event-B and TLA+ that aim to address these points.
-
+The B-method like Z notation before it lacks support for nonfunctional requirements despite being closer to an implementation level description. Like Z, the B-Method is primarily a state-based modelling tool but with greater emphasis on refinement and proof processes. 
 \subsubsection*{Trading System Model}
 
 Our trading system model in B starts with the machine definition. Because we need to express date as an option our DateOption free type in Z needs to be declared as a free type in B so we can express the constructor function.
@@ -1101,7 +1103,7 @@ Our trading system model in B starts with the machine definition. Because we nee
 MACHINE TradingSystem
   FREETYPES
     DATEOPTION = None, Some(DATE)
-  ...
+  /* ... */
 END
 \end{verbatim}
 
@@ -1123,7 +1125,9 @@ SETS
 DEFINITIONS
   DATE == 20250101..20991231;
   IDENTIFIER == PREFIX * (1..9);
-  TRADE == struct( identifier: IDENTIFIER, direction: DIRECTION, security: SECURITY, quantity: NAT1, counterparty: COUNTERPARTY,startDate: DATE, endDate: DATEOPTION, status: STATUS, owner: TRADER )
+  TRADE == struct(identifier: IDENTIFIER, direction: DIRECTION, security: SECURITY, 
+    quantity: NAT1, counterparty: COUNTERPARTY, startDate: DATE, 
+    endDate: DATEOPTION, status: STATUS, owner: TRADER)
 \end{verbatim}
 
 \hspace{-0.7cm} For capturing users of the trading system and trades booked we mirror the global state from the Z specification with a trades and users variables.
@@ -1131,6 +1135,9 @@ DEFINITIONS
 \begin{verbatim}
 VARIABLES
   trades, users
+\end{verbatim}
+
+\begin{verbatim}
 INITIALISATION
   trades := {}
   ||
@@ -1153,90 +1160,67 @@ INVARIANT
 \end{verbatim}
 
 \hspace{-0.7cm} Which moves us finally onto a operations. Starting with adding and removing traders and then creating and closing trades preconditions to make sure we don't invalidate the invariants we specified earlier. 
-
-\begin{verbatim}
-  OPERATIONS
-    ...
-  END
-\end{verbatim}
-
 \pagebreak
 
-\hspace{-0.7cm} Something something something
-
 \begin{verbatim}
-CreateTrade(t) =
-  PRE
-    t: TRADE
-    &
-    t'identifier /: dom(trades)
-    &
-    t'owner: users 
-    &
-    t'status = Open 
-    &
-    t'endDate = None 
-    &
-    t'quantity < 100000
-  THEN
-    trades := trades \/ { t'identifier |-> t }
-  END;
-\end{verbatim}
+OPERATIONS
+  CreateTrade(t) =
+    PRE
+      t: TRADE
+      &
+      t'identifier /: dom(trades)
+      &
+      t'owner: users 
+      &
+      t'status = Open 
+      &
+      t'endDate = None 
+      &
+      t'quantity < 100000
+    THEN
+      trades := trades \/ { t'identifier |-> t }
+    END;
 
-\hspace{-0.7cm} Something something something
-
-\begin{verbatim}
-CloseTrade(i, d) =
-  PRE
-    i: IDENTIFIER
-    &
-    d: DATE
-    &
-    i: dom(trades)
-    &
-    trades(i)'startDate < d
-    &
-    trades(i)'status = Open
-    &
-    trades(i)'endDate = None
-  THEN
-    LET trade BE t = trades(i) IN
-      trades := trades <+ { 
-        i |-> rec( 
-          identifier: t'identifier, 
-          direction: t'direction, 
-          security: t'security, 
-          quantity: t'quantity, 
-          startDate: t'startDate, 
-          counterparty: t'counterparty, 
-          owner: t'owner, 
-          endDate: Some(d),
-          status: Closed 
-        ) 
-      }
-    END
+  CloseTrade(i, d, o) =
+    PRE
+      i: IDENTIFIER
+      &
+      d: DATE
+      &
+      o: TRADER
+      &
+      i: dom(trades)
+      &
+      trades(i)'startDate < d
+      &
+      trades(i)'status = Open
+      &
+      trades(i)'endDate = None
+      &
+      trades(i)'owner = o 
+    THEN
+      LET trade BE trade = trades(i) IN
+        trades(i) := rec(
+          identifier: trade'identifier, direction: trade'direction, 
+          security: trade'security, quantity: trade'quantity, 
+          startDate: trade'startDate, counterparty: trade'counterparty, 
+          owner: trade'owner, endDate: Some(d), status: Closed
+        )
+      END
   END 
 \end{verbatim}
-
 \pagebreak
 
-
-\hspace{-0.7cm} Something something something
-
 \begin{verbatim}
-AddTrader(u) = 
-  PRE
-    u: TRADER
-    &
-    u/: users
-  THEN
-    users := users \/ {u}
-END;
-\end{verbatim}
+  AddTrader(u) = 
+    PRE
+      u: TRADER
+      &
+      u/: users
+    THEN
+      users := users \/ {u}
+  END;
 
-\hspace{-0.7cm} Something something something
-
-\begin{verbatim}
   RemoveTrader(u) = 
     PRE
       u: TRADER
@@ -1252,15 +1236,41 @@ END
 
 \subsection*{Benefits and Limitations}
 
-... \pagebreak
+Benefits
 
+1. Mathematical Precision (status of trade based on end date) \\
+2. Ensuring consistency and correctness (startDate < endDate) \\
+3. Early Detection of Errors (trader not in the system to close the trade) \\ 
+
+Limitations
+
+1. Learning Curve (Show basic method then promotion)
+2. Scaling Models ()
+3. Legacy Tooling
+
+\pagebreak
+\pagebreak
 \subsection*{Relationship between Z and B}
 
-... \pagebreak
+1. Shared heritage
+2. Z focused on what not how
+3. Z for reasoning and building precise specs 
+4. B step by step refinement 
+5. Code Generation
+6. Better scalability through abstract machine definitions (SEES/USES/EXTENDS)
+7. B end to end process for build specifications and translating them into implementable code.
 
+\pagebreak
 \subsection*{Conclusions}
 
-... \pagebreak
+State based modelling is a powerful technique that enables users to describe and rationalize systems through formal descriptions of their state, transitions and constraints. \\
+\newline
+Z and B both provide great ways to build state descriptions. Z is an excellent whiteboard tool that enables users to express stateful systems with mathematical precision and is supported by an ecosystem of tools. B builds on top of that heritage adding support for step-by-step refinement of models, code generation and many other features that enable users to go from a specification to an executable program. \\
+\newline
+There are clear limitations, a steep learning curve and the need for at least a cursory understanding of mathematical notation are clearly barriers to wider adoption in areas where the technique is not considered mandatory. Even with wider adoption it still holds other limitations around how well formal methods can scale to large and complex systems and how will it integrates with common development practices such as Agile that promotes a just in time approach to requirements.  \\
+\newline
+Regardless, state-based modelling, the formal methods of Z and B are powerful tools for practitioners who wish to remove ambiguous elements from designs and produce robust specifications for systems that have been refined and tested. While there are limits to how far those benefits will stretch and how they could be adopted by others it remains a powerful asset to be leveraged in developing both simple and complex systems. \\
+\pagebreak
 
 \subsection*{References}
 
