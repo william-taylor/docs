@@ -1230,8 +1230,7 @@ END
 
 Through our models we can see numerous benefits and limitations of state-based modeling in general and in Z and B especially that lines up with other accounts from various case studies in industry and academia.\\
 \newline
-There are clear advantages for specifications being expressed through mathematical notation. It cuts down the possibility of misinterpretation and that can be seen in both models. One example is we can rationalise how trade status is derived in the models, due to the constraint imposed in Z and our invariant in B that clearly states it is derived from the end date of trade.
-
+The precise nature of specifications written through mathematical notation and the benefit it brings is evident in our models. As (Barroca and McDermid, 1992) discusses there is a well-defined interpretation of mathematics leaving little ambiguity for interpreters of the specification. This can be seen in two cases in our model. The first is how trade status is derived in the models, due to the constraint imposed in Z and our invariant in B it's made clear it is derived from the end date of trade. 
 \begin{zed}
 status = Closed \implies endDate \neq None \\
 \end{zed}
@@ -1240,7 +1239,7 @@ status = Closed \implies endDate \neq None \\
 !(t).(t: ran(trades) => t'endDate /= None => t'status = Closed)
 \end{verbatim}
   
-\hspace{-0.68cm} Other declarations also help us reationalise around consistency and correctness. For example, we can see due to the preconditions on close trade in both models that the end date of the trade should never be before or on the start date of the trade. Helping clarify what a valid trade is in terms of the system is and what it should realistically capture. 
+\hspace{-0.68cm} We can also interpret that a trade that ends on or before the start date is an invalid data point in our model. Due to the preconditions on close trade in both models. Highlighting how mathematical notation provides an unambiguous statement of the model's intent.
 
 \begin{schema}{CloseTradeLocal}
 \Delta Trade \\
@@ -1260,7 +1259,7 @@ CloseTrade(i, d, o) =
 END 
 \end{verbatim}
 
-\hspace{-0.68cm} But the biggest benefit could be the early detection of errors in the design. Traders can close their own trades; in a previous model revision you could remove a trader while they still had open trades. This is an undesired state, as we have trades in the system that cannot be closed out. The Z model was amended with a constraint, the B model with an invariant and precondition so traders cannot be removed from the system until their trades have been closed. Catching issues like this at a design stage is enormously beneficial.
+\hspace{-0.68cm} But one of the biggest benefits can be found in the early detection of errors in the design. As (Houston and King, 1991) highlight as part of the CISM project at IBM we saw that benefit appear as part of our trading system model. Traders can only close their own trades in the model, but in the previous revision you could remove a trader while they still had open trades. Resulting in an undesired state, where open trades in the system could not be closed out. The models were amended so a trader could only be removed once all trades were marked as closed. Catching issues like this at a design stage is enormously beneficial. 
 
 \begin{zed}
 \forall t: \ran trades | t.status = Open @ t.owner \in users \\ 
@@ -1272,17 +1271,17 @@ END
 
 \pagebreak
 
-\hspace{-0.60cm} But these advantages come at a cost. There is clearly a step learning curve for writing specifications with mathematical notation. Even for skilled software developer who is knowledgeable of multiple programming languages it is not too much to imagine that the below statements wouldn’t translate into anything meaningful. This ease of approach is also not helped by the ecosystem of tooling around those techniques that is not as modern or easy to pick and go as tools that support other techniques and approaches. 
+\hspace{-0.68cm} But these advantages come at a cost. There is a learning curve for writing specifications with mathematical notation even though case studies differ on how step the curve is. (Mashkoor et al, 2018) references that even people with a PhD in computer science are often put off by a Z or B specification while amongst developers the picture is even worse whereas (Barden et all, 1991) claim that with minimal Z training and expert guidance picking up and writing specifications can be achieved for those with no background in formal methods. \\
+
+\hspace{-0.68cm} Our trading model is simple, but it isn’t too far a leap to imagine the below set comprehensions that return the number of open trades per trader being difficult to decipher for newcomers to the field. 
 
 \begin{zed}
-\{ o: users @ o \mapsto \# \{ t: \ran trades | t.owner = o \land t.status = Open \} \}
+\{o: users @ o \mapsto \# \{t: \ran trades | t.owner = o \land t.status = Open\}\}
 \end{zed}
 
 \begin{verbatim}
-{ o•o: users | o |-> card({ t|t: ran(trades) & t'owner=o & t'status = Open }) }
+{o•o: users | o |-> card({ t|t: ran(trades) & t'owner=o & t'status = Open })}
 \end{verbatim}
-
-While these models are quite terse, it’s also apparent that it is due to the fact they represent a very thin slice of what the system in its entirety would compose of. It’s easy to see how complicated systems are with multiple modules or components may become unwieldy or difficult to manage in both Z and B. Approaches are available in both Z and B, Z specifications can be at a module level and B specifications can be split across multiple state machines but it’s clear from case studies that this doesn’t resolve the issue in its entirety.
 
 \pagebreak
 \subsection*{Relationship between Z and B}
@@ -1357,6 +1356,15 @@ Regardless, state-based modelling and the formal methods of Z and B are powerful
 \pagebreak
 
 \subsection*{References}
+
+(Barroca and McDermid, 1992)
+
+Barroca, L.M. and McDermid, J.A., 1992. Formal methods: Use and relevance for the development of safety-critical systems. The Computer Journal, 35(6), pp.579-599.
+
+Barden, R., Stepney, S. and Cooper, D. (1991). The use of Z. Workshops in computing, pp.99–124.
+
+
+Mashkoor, A., Kossak, F. and Egyed, A. (2018). Evaluating the suitability of state-based formal methods for industrial deployment. Software: Practice and Experience, 48(12), pp.2350–2379.
 
 Bicarregui, J.C., Clutterbuck, D.L., Finnie, G., Haughton, H., Lano, K., Lesan, H., Marsh, D.W.R.M., Matthews, B.M., Moulding, M.R., Newton, A.R. and Ritchie, B., 1997. Formal methods into practice: case studies in the application of the B method. IEE Proceedings-Software, 144(2), pp.119-133. \\
 \newline
