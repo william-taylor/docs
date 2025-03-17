@@ -963,7 +963,9 @@ Status ::= Open | Closed \\
 Trader ::= Joe | John | Jane | Joan \\
 Prefix ::= T | S | U \\
 \end{zed}
-\vspace{-0.6cm} 
+
+\vspace{-0.4cm} 
+
 \begin{schema}{Trade}
 identifier: Identifier \\
 direction: Direction \\ 
@@ -976,14 +978,16 @@ status: Status \\
 owner: Trader \\
 \where
 quantity \leq 100000 \\
-endDate \neq None \implies status = Closed \\
+status = Closed \implies endDate \neq None \\
 \end{schema}
-\vspace{-0.6cm} 
+
+\vspace{-0.4cm} 
+
 \begin{schema}{TradingSystem}
 trades: Identifier \pfun Trade \\
-users: \finset Trader \\
+users: \power Trader \\
 \where
-\forall t: \ran trades | t.status = Open @ t.owner \in users 
+\forall t: \ran trades | t.status = Open @ t.owner \in users \\ 
 \end{schema}
 
 \begin{schema}{Init}
@@ -992,7 +996,9 @@ TradingSystem \\
 trades = \emptyset \\
 users = \emptyset \\
 \end{schema}
-\vspace{-0.6cm} 
+
+\vspace{-0.4cm} 
+
 \begin{schema}{CreateTrade}
 \Delta TradingSystem \\
 t?: Trade \\
@@ -1004,7 +1010,9 @@ t?: Trade \\
 trades' = trades \cup \{ (t?).identifier \mapsto t? \} \\
 users' = users \\
 \end{schema}
-\vspace{-0.6cm} 
+
+\vspace{-0.4cm} 
+
 \begin{schema}{CloseTradeLocal}
 \Delta Trade \\
 d?: Date \\ 
@@ -1023,7 +1031,9 @@ owner' =  owner \\
 endDate' = Some(d?) \\ 
 status' = Closed \\
 \end{schema}
-\vspace{-0.6cm} 
+
+\vspace{-0.4cm} 
+
 \begin{schema}{PromoteTrade}
 \Delta TradingSystem \\
 \Delta Trade \\
@@ -1039,6 +1049,8 @@ users' = users \\
 GlobalCloseTrade \defs \exists \Delta Trade @ CloseTradeLocal \land PromoteTrade \\
 \end{zed}
 
+\vspace{-0.1cm} 
+
 \begin{schema}{AddTrader}
 \Delta TradingSystem \\
 u?: Trader \\ 
@@ -1047,7 +1059,9 @@ u? \notin users \\
 users' = users \cup \{ u? \} \\
 trades' = trades \\
 \end{schema}
-\vspace{-0.6cm} 
+
+\vspace{-0.1cm} 
+
 \begin{schema}{RemoveTrader}
 \Delta TradingSystem \\
 u?: Trader \\ 
@@ -1057,11 +1071,22 @@ users' = users \setminus \{ u? \} \\
 trades' = trades \\
 \end{schema}
 
-\pagebreak
-\vspace{-0.6cm} 
+\vspace{-0.1cm} 
+
+\begin{schema}{OpenTradeCountPerTrader}
+\Xi TradingSystem \\
+r!: \power (Trader \cross \nat) \\ 
+\where
+users \neq \emptyset \\
+r! = \{ o: users @ o \mapsto \# \{ t: \ran trades | t.owner = o \land t.status = Open \} \} \\
+\end{schema}
+
 \subsection*{Trading System - B}
+
 \begin{verbatim}
 MACHINE TradingSystem
+  FREETYPES
+    DATEOPTION = None, Some(DATE)
   SETS 
     COUNTERPARTY = { Citadel, Millennium };
     DIRECTION = { Borrow, Loan };
@@ -1073,14 +1098,10 @@ MACHINE TradingSystem
     DATE == 20250101..20991231;
     IDENTIFIER == PREFIX * (1..9);
     TRADE == struct(identifier: IDENTIFIER, direction: DIRECTION, security: SECURITY, 
-      quantity: NAT1, counterparty: COUNTERPARTY, startDate: DATE, 
-      endDate: DATEOPTION, status: STATUS, owner: TRADER)
+	  quantity: NAT1, counterparty: COUNTERPARTY, startDate: DATE, 
+          endDate: DATEOPTION, status: STATUS, owner: TRADER)
   VARIABLES
     trades, users
-  INITIALISATION
-    trades := {}
-    ||
-    users := {}
   INVARIANT
     trades: IDENTIFIER +-> TRADE
     &
@@ -1088,10 +1109,32 @@ MACHINE TradingSystem
     &
     !(t).(t: ran(trades) => t'quantity <= 100000)
     &
-    !(t).(t: ran(trades) => t'endDate /= None => t'status = Closed)
+    !(t).(t: ran(trades) => (t'endDate /= None => t'status = Closed))
     &
     !(t).(t: ran(trades) & t'status = Open => t'owner: users)
+  INITIALISATION
+    trades := {} 
+    || 
+    users := {}
   OPERATIONS
+    AddTrader(u) = 
+      PRE
+        u: TRADER
+        &
+        u/: users
+      THEN
+        users := users \/ {u}
+      END;
+    RemoveTrader(u) = 
+      PRE
+        u: TRADER
+        &
+        u:users
+        &
+        {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
+      THEN
+        users := users - {u}
+      END;
     CreateTrade(t) =
       PRE
         t: TRADE
@@ -1108,6 +1151,8 @@ MACHINE TradingSystem
       THEN
         trades := trades \/ { t'identifier |-> t }
       END;
+
+
     CloseTrade(i, d, o) =
       PRE
         i: IDENTIFIER
@@ -1124,33 +1169,22 @@ MACHINE TradingSystem
         &
         trades(i)'endDate = None
         &
-        trades(i)'owner = o
+        trades(i)'owner = o 
       THEN
         LET t BE t = trades(i) IN
-          trades(i) := rec(identifier: t'identifier, direction: t'direction, 
+          trades(i) := rec(
+            identifier: t'identifier, direction: t'direction, 
             security: t'security, quantity: t'quantity, startDate: t'startDate, 
-            counterparty: t'counterparty, owner: t'owner, endDate: Some(d), status: Closed)
+            counterparty: t'counterparty, owner: t'owner, endDate: Some(d), status: Closed
+          )
         END
-    END 
-  AddTrader(u) = 
+      END;
+  r <-- OpenTradeCountPerTrader = 
     PRE
-      u: TRADER
-      &
-      u/: users
-    THEN
-      users := users \/ {u}
-    END;
-  RemoveTrader(u) = 
-    PRE
-      u: TRADER
-      &
-      u:users
-      &
-      {t | t: ran(trades) & t'owner = u & t'status = Open } = {}
-    THEN
-      users := users - {u}
-    END;
-  END
+      users /= {} 
+    THEN 
+      r := { o•o: users | o |-> card({ t|t: ran(trades) & t'owner=o & t'status = Open }) }
+    END
 END
 \end{verbatim}
 
