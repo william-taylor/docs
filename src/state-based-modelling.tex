@@ -22,7 +22,7 @@
 
 The state model below makes multiple assumptions. As it was stated that a timeline can be associated with, at most, one multiverse, it has been assumed that timelines do not necessarily need to be linked to a multiverse when created but can be linked later. it has also been assumed that delete operations should clean up all associated states and not only be available when none exists. \\
 \newline
-The model introduces a timeline and character function through axiomatic definitions to circumvent ProZ's component selection limitations. We also define a single initialisation operation with no input arguments to meet ProZ's initialisation requirements. \\ 
+The model introduces a timeline and character functions through axiomatic definitions to circumvent ProZ's component selection limitations. We also define a single initialisation operation with no input arguments to meet ProZ's initialisation requirements. \\ 
 \newline
 Promotion was adopted for the model to split concerns between how we change character state and then record that in the global state increasing readability. Additional functions were also defined to help improve the readability of output operators when extracting a set of character state properties. \\
 \newline
@@ -57,7 +57,7 @@ maxLives: 1 \upto 3 \\
 \where
 being = immortal \implies (maxLives, lives, status) = (1, 1, alive) \\
 being = human \implies maxLives = 1 \\
-lives \leq maxLives \\ 
+lives \leq maxLives \land lives = 0 \implies status = dead \\ 
 \end{schema}
 
 \begin{schema}{Megaverse}
@@ -411,7 +411,7 @@ MACHINE Megaverse
     &
     { p•p: dom(characterStates) | prj2(p) } <: characters
     &
-    !(s).(s: ran(characterStates) => s'lives <= s'maxLives)
+    !(s).(s: ran(characterStates) => s'lives <= s'maxLives & (s'lives = 0 => s'status = dead))
     &
     !(s).(s: ran(characterStates) & s'being = human => s'maxLives = 1)
     &
@@ -710,7 +710,7 @@ END
 
 \subsection*{Part C}
 
-To extend the model, expanding the details we capture in the CharacterState schema to enable new states to be expressed is a logical extension of the model. We currently have a BeingType free type, but it is overloaded and expresses multiple things together, which is somewhat limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character with powers but may be a villain in the story? For this, additional free types have been created below. 
+To extend the model, expanding the details we capture in the CharacterState schema to enable new states to be expressed is a logical extension of the model. We currently have a BeingType free type, but it is overloaded and expresses multiple things together, which is somewhat limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character with powers but may be a villain in the story? For this, additional free types have been created below to replace BeingType. 
 
 \begin{zed}
 Mortality ::= mortal | immortal \\
@@ -719,12 +719,13 @@ Power ::= enhanced | mutant | magic | cosmic \\
 Species ::= human | alien | titan | android \\
 \end{zed}
 
-\hspace{-0.68cm} Introducing the first of many state-based problems: If humans are classified in terms of species, how do we determine whether they have powers? We can solve this with another free type with a constructor that allows us to express whether the character does not have any powers or if they do what it is explicitly. 
+\hspace{-0.68cm} Introducing the first of many state-based problems: If humans are classified in terms of species, how do we determine whether they have powers? With the Powers free type below, we can now express whether the character does not have any powers or if they do what it is explicitly.
+
 \begin{zed}
 Powers ::= none | some \ldata Power \rdata \\
 \end{zed}
 
-\hspace{-0.68cm} As these are related to a character's state and not their core definition, we add these properties to the CharacterState schema, which has knock-on effects. Requiring updates to the constraints to point them at the new morality and powers attributes instead of the existing beingType attribute.
+\hspace{-0.68cm} As these are related to a character's state and not their core definition, we can add these attributes to the CharacterState schema, which has knock-on effects. Requiring updates to the constraints to point them at the new morality and powers attributes instead of the existing beingType attribute.
 
 \begin{schema}{CharacterState}
 alignment: Alignment \\
@@ -737,12 +738,12 @@ status: LivingStatus \\
 \where
 mortality = immortal \implies (maxLives, lives, status) = (1, 1, alive) \\
 powers = none \implies maxLives = 1 \\ 
-lives \leq maxLives \\
+lives \leq maxLives \land lives = 0 \implies status = dead \\
 \end{schema}
 
 \hspace{-0.68cm} This introduces a new problem. ChangeToHuman and ChangeToSuperhero operations do not make much sense with these new attributes. Should alien immortals become human if they give up their immortality? Can only humans become superheroes? Redefining the operators as GainPowers and GiveUpImmortality made sense to resolve these restrictions and inconsistencies. This incorporates the new attributes to expand the possible states in the model. \\
 \newline
-The GainPowers operator now accepts alignment and power as inputs so they can be declared when a character gains superpowers. The GivingUpImmortality operation now updates the character's mortality status, leaving species untouched. Precondition updates were needed for all operations to move to the new attributes and for the body of each operation to state explicitly what happened to each new attribute.
+The GainPowers operator now accepts alignment and power as inputs, so we can specify alignment changes when a character gains powers, such as a neutral character becoming a villain when they gain magical powers. The GivingUpImmortality operation now updates the character’s mortality status, leaving species untouched. Precondition updates were needed for all operations to move to the new attributes and for the body of each operation to state explicitly what happened to each new attribute.
 \begin{schema}{KillCharacterLocal} 
 \Delta CharacterState \\
 \where
@@ -1235,7 +1236,7 @@ In the model, traders can only close their trades. However, one could remove a t
 \end{verbatim}
 \pagebreak
 
-\hspace{-0.68cm} However, these advantages come at a cost. There is a learning curve for writing specifications with mathematical notation, even though cases differ on how steep the curve is. Mashkoor et al, (2018) references that even people with a PhD in computer science are often put off by a Z or B specification, while the picture is even worse amongst developers. Whereas Barden et al. (1991) claims that with minimal Z training and expert guidance, picking up and writing specifications can be achieved for those with no background in formal methods. \\
+\hspace{-0.68cm} However, these advantages come at a cost. There is a learning curve for writing specifications with mathematical notation, even though cases differ on how steep the curve is. Mashkoor et al. (2018) references that even people with a PhD in computer science are often put off by a Z or B specification, while the picture is even worse amongst developers. Whereas Barden et al. (1991) claims that with minimal Z training and expert guidance, picking up and writing specifications can be achieved for those with no background in formal methods. \\
 \newline
 \hspace{-0.68cm} This is reflected in our trading system model. If we extract the set comprehension present in the OpenTradeCountPerTrade output operator, which returns the number of open trades per trader, it is not difficult to imagine that newcomers to state-based modelling and formal methods would struggle to decipher the statements.
 
@@ -1249,11 +1250,11 @@ In the model, traders can only close their trades. However, one could remove a t
 
 Looking at Z specifically, it is a mature language that’s an ISO standard, and as Bowen (2016) stipulates, the reduction in research on the language will be partly due to its maturity. As we can see in our model, its constructs enable us to write expressive specifications, and as Barroca and McDermid (1992) point out, we are free to extend the language where we need to. With its use of schema and schema calculus, we can also tie smaller modules together to aid in modelling larger, more complex systems. \\
 \newline
-However, as Bowen (2016) notes, Z suffers from a less robust tooling ecosystem for other notations. The lack of appropriate tooling for proof is highlighted by Barden et al. (1991) as a key limiting factor. It is also important to remember that Z notation was designed with a specific purpose. As Woodcock and Davies (1996) explain, the notation is not for the description of nonfunctional properties such as performance, reliability or usability, where other supplementary formal methods would need to be adopted for such purposes. \\
+However, as Bowen (2016) notes, Z suffers from a less robust tooling ecosystem compared to other notations. The lack of appropriate tooling for proof is highlighted by Barden et al. (1991) as a key limiting factor. It is also important to remember that Z notation was designed with a specific purpose. As Woodcock and Davies (1996) explain, the notation is not for the description of nonfunctional properties such as performance, reliability or usability, where other supplementary formal methods would need to be adopted for such purposes. \\
 \newline
 Moving to B, as Butler et al. (2020) write, B is among the formal methods of most significant industrial impact, which is attributed in surveys to the strength of the tooling available for B. As Kaur et al. (2012) catalogues, whether it is model animation, deadlock detection, code and test generation and many more, this is B's biggest strength. Developing the trading system model with these tools enabled us to gain confidence in the specification while removing a lot of the manual work that would have been required had other formal methods been used. Being able to animate the model and interactively stepping through the various states helped highlight the issue with the previously mentioned remove trader operation. \\
 \newline
-However, B’s most significant limitation is also partly due to its tooling; it’s a heavy approach and not precisely fitted to be a whiteboard-style modelling tool in the same way as Z. Even when it comes to parts of the tooling, there are also known gaps. As Bicarregui et al. (1997) discuss in their model, the automatically generated code required manual translation to the target language. It has also been referenced that while B provides ways to compose machine definitions together, Butlet et al. (2020) write that more could be done to help manage complex systems and models through new visualisation techniques that would aid broader adoption.
+However, B’s most significant limitation is also partly due to its tooling; it’s a heavy approach and not precisely fitted to be a whiteboard-style modelling tool in the same way as Z. Even when it comes to parts of the tooling, there are also known gaps. As Bicarregui et al. (1997) discuss in their model, the automatically generated code required manual translation to the target language. It has also been referenced that while B provides ways to compose machine definitions together, Butler et al. (2020) write that more could be done to help manage complex systems and models through new visualisation techniques that would aid broader adoption.
 \pagebreak
 \subsection*{Relationship between Z and B}
 
