@@ -20,11 +20,11 @@
 
 \subsection*{Part A}
 
-The state model below makes multiple assumptions. As it was stated that a timeline can be associated with at most one multiverse, I’ve assumed timelines don’t necessarily need to be linked to a multiverse when created, but they can be linked later. it has also been assumed that delete operations should clean up all associated states and not only be available when none exists. \\
+The state model below makes multiple assumptions. As it was stated that a timeline can be associated with, at most, one multiverse, it has been assumed that timelines do not necessarily need to be linked to a multiverse when created but can be linked later. it has also been assumed that delete operations should clean up all associated states and not only be available when none exists. \\
 \newline
-The model introduces a timeline and character function through axiomatic definitions to circumvent ProZ's component selection limitations. To meet ProZ's initialisation requirements, one and only one initialisation operation with no inputs has also been defined. \\
+The model introduces a timeline and character function through axiomatic definitions to circumvent ProZ's component selection limitations. We also define a single initialisation operation with no input arguments to meet ProZ's initialisation requirements. \\ 
 \newline
-Promotion was adopted for the model to split concerns between how we change character state and then record that in the global state increasing readability. Additional functions were also defined to help improve the readability of output operators when extracting a set of character state properties.  \\
+Promotion was adopted for the model to split concerns between how we change character state and then record that in the global state increasing readability. Additional functions were also defined to help improve the readability of output operators when extracting a set of character state properties. \\
 \newline
 Finally, it was assumed that embellishing the types in the model, such as the multiverse, timeline, and character types, was not expected beyond the scope of what was laid out in the scenario to keep the model terse.
 
@@ -57,7 +57,7 @@ maxLives: 1 \upto 3 \\
 \where
 being = immortal \implies (maxLives, lives, status) = (1, 1, alive) \\
 being = human \implies maxLives = 1 \\
-lives \leq maxLives \\
+lives \leq maxLives \\ 
 \end{schema}
 
 \begin{schema}{Megaverse}
@@ -108,7 +108,7 @@ multiverses' = multiverses \\
 multiverseTimelines' = \{ m? \} \ndres multiverseTimelines \\
 characterStates' = \{ p: \dom characterStates | \\
 \t1 timeline(p) \in multiverseTimelines \limg \{ m? \} \rimg 
-\} \ndres characterStates \\
+  \} \ndres characterStates \\
 \end{schema} 
 
 \begin{schema}{DeleteMultiverse}
@@ -275,7 +275,7 @@ status' = dead \\
 being' = being \\
 \end{schema}
 
-\begin{schema}{ReanimateCharacterLocal}
+\begin{schema}{ResurrectCharacterLocal}
 \Delta CharacterState \\
 \where
 status = dead \\
@@ -330,8 +330,8 @@ GlobalKillCharacter \defs \\
 \end{zed}
 
 \begin{zed}
-GlobalReanimateCharacter \defs \\
-\t1 \exists \Delta CharacterState @ ReanimateCharacterLocal \land PromoteCharacterState \\
+GlobalResurrectCharacter \defs \\
+\t1 \exists \Delta CharacterState @ ResurrectCharacterLocal \land PromoteCharacterState \\
 \end{zed}
 
 \begin{zed}
@@ -343,7 +343,7 @@ GlobalChangeToHuman \defs \\
 GlobalChangeToSuperhero \defs \\
 \t1 \exists \Delta CharacterState @ ChangeToSuperheroLocal \land PromoteCharacterState \\
 \end{zed}
-
+      
 \begin{axdef}
 beingAndStatus: CharacterState \fun BeingType \cross LivingStatus \\
 \where
@@ -372,8 +372,8 @@ r! = \{ t: timelines | (t, c?) \in \dom characterStates @  \\
 \t1 t \mapsto beingAndStatus(characterStates((t, c?)))   
 \} \\ 
 \end{schema}
-\pagebreak
 
+\pagebreak
 \subsection*{Part B}
 
 \vspace{0.5cm}
@@ -388,8 +388,8 @@ MACHINE Megaverse
   DEFINITIONS
     CHARACTER_STATE == 
       struct(being: BEING_TYPE, status: LIVING_STATUS, lives: 0..3, maxLives: 1..3);
-    CHARACTER_LOCATION == TIMELINE * CHARACTER;
-    BEING_AND_STATUS(s) == (s'being, s'status) 
+    	CHARACTER_LOCATION == TIMELINE * CHARACTER;
+    	BEING_AND_STATUS(s) == (s'being, s'status) 
   VARIABLES
     multiverses, timelines, multiverseTimelines, characters, characterStates
   INVARIANT
@@ -415,11 +415,11 @@ MACHINE Megaverse
     &
     !(s).(s: ran(characterStates) & s'being = human => s'maxLives = 1)
     &
-    !(s).(s: ran(characterStates) & s'being = immortal =>
-        (s'maxLives, s'lives, s'status) = (1, 1, alive))
+    !(t).(t: timelines 
+        => card({ m • m: multiverses & (m,t): multiverseTimelines | (m, t) }) <= 1)
     &
-    !(t).(t: timelines => 
-        card({ m•m: multiverses & (m,t): multiverseTimelines | (m,t) }) <= 1)
+    !(s).(s: ran(characterStates) & s'being = immortal 
+        => (s'maxLives, s'lives, s'status) = (1, 1, alive))
 \end{verbatim}
 \pagebreak
 \begin{verbatim}
@@ -451,8 +451,8 @@ MACHINE Megaverse
         multiverseTimelines[{ m }] /= {}
       THEN
         timelines := timelines \ multiverseTimelines[{ m }];
-        characterStates := { p|p: dom(characterStates) & 
-            prj1(p): multiverseTimelines[{ m }] } <<| characterStates; 
+        characterStates := { p|p: dom(characterStates) & prj1(p): multiverseTimelines[{ m }] } 
+          <<| characterStates; 
         multiverseTimelines := { m } <<| multiverseTimelines
       END;
     DeleteMultiverse(m) =
@@ -463,8 +463,8 @@ MACHINE Megaverse
       THEN
         multiverses := multiverses \ { m };
         timelines := timelines \ multiverseTimelines[{ m }];
-        characterStates := { p|p: dom(characterStates) & 
-          prj1(p): multiverseTimelines[{ m }] } <<| characterStates; 
+        characterStates := { p|p: dom(characterStates) & prj1(p): multiverseTimelines[{ m }] } 
+          <<| characterStates; 
         multiverseTimelines := { m } <<| multiverseTimelines
       END;
 \end{verbatim}
@@ -487,8 +487,7 @@ MACHINE Megaverse
         { p|p: dom(characterStates) & t = prj1(p) } /= {}
       THEN
         multiverseTimelines := multiverseTimelines |>> { t }; 
-        characterStates := { p|p: dom(characterStates) & prj1(p) = t }
-            <<| characterStates 
+        characterStates := { p|p: dom(characterStates) & prj1(p) = t } <<| characterStates 
       END;
     DeleteTimeline(t) =
       PRE
@@ -498,8 +497,7 @@ MACHINE Megaverse
       THEN
         multiverseTimelines := multiverseTimelines |>> { t }; 
         timelines := timelines \ { t };
-        characterStates := { p|p: dom(characterStates) & prj1(p) = t } 
-            <<| characterStates
+        characterStates := { p|p: dom(characterStates) & prj1(p) = t } <<| characterStates
       END;
     AddTimelineToMultiverse(t, m) =
       PRE
@@ -568,8 +566,8 @@ MACHINE Megaverse
         c: characters
       THEN
         characters := characters \ { c };
-        characterStates := { p•p: dom(characterStates) & prj2(p) = c | 
-          (prj1(p), c) } <<| characterStates 
+        characterStates := { p•p: dom(characterStates) & prj2(p) = c | (prj1(p), c) } 
+          <<| characterStates 
       END;
     AddCharacterToTimeline(m, t, c, s) =
       PRE
@@ -664,23 +662,23 @@ MACHINE Megaverse
             rec(being: s'being, status: dead, lives: s'lives - 1, maxLives: s'maxLives)
         END
       END;
-    ReanimateCharacter(t, c) =
-      PRE
-        t: TIMELINE 
-        &
-        c: CHARACTER
-        &
-        (t,c): dom(characterStates)
-        &
-        characterStates((t,c))'status = dead
-        &
-        characterStates((t,c))'lives > 0
-      THEN
-        LET s BE s = characterStates(t,c) IN 
-          characterStates(t,c) := 
-            rec(being: s'being, status: alive, lives: s'lives, maxLives: s'maxLives)
-        END
-      END;
+  ResurrectCharacter(t, c) =
+    PRE
+      t: TIMELINE 
+      &
+      c: CHARACTER
+      &
+      (t,c): dom(characterStates)
+      &
+      characterStates((t,c))'status = dead
+      &
+      characterStates((t,c))'lives > 0
+    THEN
+      LET s BE s = characterStates(t,c) IN 
+        characterStates(t,c) :=
+          rec(being: s'being, status: alive, lives: s'lives, maxLives: s'maxLives)
+      END
+    END;
     r <-- LivingStatusForCharactersInTimeline(t) = 
       PRE
         t: TIMELINE
@@ -712,7 +710,8 @@ END
 
 \subsection*{Part C}
 
-It would make sense to expand the details we capture in the CharacterState schema to extend the model. We currently have a BeingType free type, but it is overloaded and expresses multiple things together, which is somewhat limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character with powers but may be a villain in the story? For this, additional free types have been created below. 
+To extend the model, expanding the details we capture in the CharacterState schema to enable new states to be expressed is a logical extension of the model. We currently have a BeingType free type, but it is overloaded and expresses multiple things together, which is somewhat limiting. What if we wanted a non-human character to be capable of being a superhero? How might we represent a character with powers but may be a villain in the story? For this, additional free types have been created below. 
+
 \begin{zed}
 Mortality ::= mortal | immortal \\
 Alignment ::= neutral | hero | villan \\
@@ -720,12 +719,12 @@ Power ::= enhanced | mutant | magic | cosmic \\
 Species ::= human | alien | titan | android \\
 \end{zed}
 
-\hspace{-0.64cm} Introducing the first of many state-based problems: If humans are classified in terms of species, how do we determine whether they have powers? We can solve this with another free type with a constructor that allows us to express whether the character does not have any powers or if they do what it is explicitly. 
+\hspace{-0.68cm} Introducing the first of many state-based problems: If humans are classified in terms of species, how do we determine whether they have powers? We can solve this with another free type with a constructor that allows us to express whether the character does not have any powers or if they do what it is explicitly. 
 \begin{zed}
 Powers ::= none | some \ldata Power \rdata \\
 \end{zed}
 
-\hspace{-0.64cm} As these are related to a character's state and not their core definition, we add these properties to the CharacterState schema, which has knock-on effects. Requiring updates to the constraints to point them at the new morality and powers attributes instead of the existing type attribute.
+\hspace{-0.68cm} As these are related to a character's state and not their core definition, we add these properties to the CharacterState schema, which has knock-on effects. Requiring updates to the constraints to point them at the new morality and powers attributes instead of the existing beingType attribute.
 
 \begin{schema}{CharacterState}
 alignment: Alignment \\
@@ -741,10 +740,9 @@ powers = none \implies maxLives = 1 \\
 lives \leq maxLives \\
 \end{schema}
 
-\hspace{-0.7cm} This introduces a new problem. We have ChangeToHuman and ChangeToSuperhero operations that do not make much sense with these new attributes. Should an alien immortal become human if they give up their immortality? Can only humans become superheroes? To resolve these restrictions and inconsistencies, redefining them as GainPowers and GiveUpImmortality made sense. This incorporates the new attributes to expand the possible states in the model. \\
+\hspace{-0.68cm} This introduces a new problem. ChangeToHuman and ChangeToSuperhero operations do not make much sense with these new attributes. Should alien immortals become human if they give up their immortality? Can only humans become superheroes? Redefining the operators as GainPowers and GiveUpImmortality made sense to resolve these restrictions and inconsistencies. This incorporates the new attributes to expand the possible states in the model. \\
 \newline
-The GainPowers operator now accepts alignment and power as inputs so they can be declared when a character gains superpowers. The GivingUpImmortality operation now updates the character's mortality status, leaving species untouched. Precondition updates were needed for all operations to move to the new attributes and for them to be specified explicitly on how they changed when the operation was executed.
-
+The GainPowers operator now accepts alignment and power as inputs so they can be declared when a character gains superpowers. The GivingUpImmortality operation now updates the character's mortality status, leaving species untouched. Precondition updates were needed for all operations to move to the new attributes and for the body of each operation to state explicitly what happened to each new attribute.
 \begin{schema}{KillCharacterLocal} 
 \Delta CharacterState \\
 \where
@@ -781,7 +779,6 @@ a?: Alignment \\
 l?: 2 \upto 3 \\
 \where
 status = alive \\ 
-species = human \\
 powers = none \\
 alignment' = a? \\
 mortality' = mortality \\
@@ -797,7 +794,7 @@ status' = status \\
 \where
 mortality = immortal \\
 alignment' = alignment \\
-mortality' = mortality \\
+mortality' = mortal \\
 powers' = powers \\ 
 species' = species \\
 lives' = 1 \\
@@ -805,7 +802,7 @@ maxLives' = 1 \\
 status' = alive \\
 \end{schema}
 
-\hspace{-0.7cm} Finally, with our new and updated operations, we need to define them in the context of the global state schema so these local operations can be promoted from CharacterState to the Megaverse.
+\hspace{-0.64cm} Finally, we need to define our new and updated operations in the context of the global state schema so that these local operations on CharacterState can be promoted to the Megaverse state schema.
 
 \begin{zed}
 GlobalGiveUpImmortality \defs \exists \Delta CharacterState @ GiveUpImmortalityLocal \land PromoteCharacterState \\
@@ -814,7 +811,7 @@ GlobalKillCharacter \defs \exists \Delta CharacterState @ KillCharacterLocal \la
 GlobalGainPowers \defs \exists \Delta CharacterState @ GainPowersLocal \land PromoteCharacterState \\
 \end{zed}
 
-\hspace{-0.64cm} Adding these extensions to the B model starts with new sets for our new free type definitions. However, the Powers free type must be declared a full-free type in B as it cannot be expressed as a set. We can then add the new attributes to the CharacterState struct.
+\hspace{-0.68cm} Adding these extensions to the B model starts with new sets for our new free type definitions. However, the Powers free type must be declared a full-free type in B as it cannot be expressed as a set. We can then add the new attributes to the CharacterState struct.
 
 \begin{verbatim}
 SETS 
@@ -846,12 +843,13 @@ INVARIANT
 AddCharacterToTimeline(m, t, c, s) =
   PRE
     /* ... */
-    (s'powers /= NONE => s'maxLives = 1)
+    (s'powers = NONE => s'maxLives = 1)
     &
     (s'mortality = immortal => (s'maxLives, s'lives, s'status) = (1, 1, alive))
 \end{verbatim}
 
-\hspace{-0.64cm} Replicating the GainPowers and GiveUpImmortality operators in B is similar to what we did in Z. The Preconditions are updated, and the new inputs of alignment and power for GainPowers helps express new states in the model.
+\hspace{-0.64cm} Replicating the GainPowers and GiveUpImmortality operators in B is similar to what we did in Z. The Preconditions are updated, and the new alignment and power inputs for GainPowers help express new states in the model.
+
 \begin{verbatim}
 KillCharacter(c, t) =
   PRE
@@ -917,7 +915,7 @@ ResurrectCharacter(t, c) =
           rec(alignment: a, mortality: s'mortality, powers: SOME(p), 
             species: s'species, lives: l, maxLives: l, status: alive)
       END
-    END;
+  END;
 
   GiveUpImmortality(t,c) =
     PRE
@@ -931,7 +929,7 @@ ResurrectCharacter(t, c) =
     THEN
       LET s BE s = characterStates(t,c) IN
         characterStates(t,c) := 
-          rec(alignment: s'alignment, mortality: s'mortality, powers: s'powers, 
+          rec(alignment: s'alignment, mortality: mortal, powers: s'powers, 
             species: s'species, lives: 1, maxLives: 1, status: alive)
       END
     END;
@@ -946,7 +944,7 @@ ResurrectCharacter(t, c) =
 
 Software systems can be complex and often have a scope too large for any developer to comprehend fully. State-based modelling is a powerful technique that can help bring order to complexity through description, refinement, and proof, establishing a system's properties and behaviours. \\
 \newline
-To illustrate the benefits and limitations of state-based modelling in general and the relationship between Z and B, a basic trading system model has been designed to capture and store securities lending trades. These are transactions between parties who wish to borrow or loan a given security. \\
+To illustrate the benefits and limitations of state-based modelling in general and the relationship between Z and B, a basic trading system model has been designed to capture and store securities lending trades. These are transactions between parties wishing to borrow or loan a given security. \\
 \newline
 By leveraging this model and providing additional support through referenced case studies and papers, we aim to illustrate the benefits and limitations of state-based modelling, the Z and B formal methods and explain their unique relationship.
 
@@ -963,7 +961,7 @@ Status ::= Open | Closed \\
 Trader ::= Joe | John | Jane | Joan \\
 Prefix ::= T | S | U \\
 \end{zed}
-
+  
 \vspace{-0.4cm} 
 
 \begin{schema}{Trade}
@@ -1010,7 +1008,7 @@ t?: Trade \\
 trades' = trades \cup \{ (t?).identifier \mapsto t? \} \\
 users' = users \\
 \end{schema}
-
+  
 \vspace{-0.4cm} 
 
 \begin{schema}{CloseTradeLocal}
@@ -1173,25 +1171,27 @@ MACHINE TradingSystem
       THEN
         LET t BE t = trades(i) IN
           trades(i) := rec(
-            identifier: t'identifier, direction: t'direction, 
+	    identifier: t'identifier, direction: t'direction, 
             security: t'security, quantity: t'quantity, startDate: t'startDate, 
             counterparty: t'counterparty, owner: t'owner, endDate: Some(d), status: Closed
           )
         END
-      END;
-  r <-- OpenTradeCountPerTrader = 
-    PRE
-      users /= {} 
-    THEN 
-      r := { o•o: users | o |-> card({ t|t: ran(trades) & t'owner=o & t'status = Open }) }
-    END
+      END; 
+    r <-- OpenTradeCountPerTrader = 
+      PRE
+        users /= {} 
+      THEN 
+        r := { o•o: users | o |-> card({ t|t: ran(trades) & t'owner=o & t'status = Open }) }
+      END
 END
 \end{verbatim}
 
 \pagebreak
 \subsection*{Benefits \& Limitations}
 
-The precise nature of specifications written through mathematical notation and the benefit it brings is evident in our models. As (Barroca and McDermid, 1992) discusses there is a well-defined interpretation of mathematics leaving little ambiguity for interpreters of the specification. This can be seen in two cases in our model. The first is how trade status is derived in the models, due to the constraint imposed in Z and our invariant in B it's made clear it is derived from the end date of trade. 
+The general benefits of state-based modelling are well documented and can be seen from our trading system models. As Barroca and McDermid (1992) discuss there is a well-defined interpretation of mathematics leaving little ambiguity for interpreters of the specification, providing the end user with a precise description of the system's model. \\
+\newline
+This can be seen in two cases in our model. The first is how trade status is derived in the models, due to the constraint imposed in Z and our invariant in B it’s made clear it is derived from the end date of trade. We can also interpret that a trade that ends on or before the start date is an invalid trade in our model, due to the preconditions on close trade in both models. Highlighting how mathematical notation provides an unambiguous statement of the model's intent.
 \begin{zed}
 status = Closed \implies endDate \neq None \\
 \end{zed}
@@ -1200,7 +1200,7 @@ status = Closed \implies endDate \neq None \\
 !(t).(t: ran(trades) => t'endDate /= None => t'status = Closed)
 \end{verbatim}
   
-\hspace{-0.68cm} We can also interpret that a trade that ends on or before the start date is an invalid data point in our model. Due to the preconditions on close trade in both models. Highlighting how mathematical notation provides an unambiguous statement of the model's intent.
+\vspace{-0.4cm}
 
 \begin{schema}{CloseTradeLocal}
 \Delta Trade \\
@@ -1216,11 +1216,15 @@ CloseTrade(i, d, o) =
   PRE
     /* ... */
     trades(i)'startDate < d
-  /* ... */
+  THEN
+    /* ... */
+  END
 END 
 \end{verbatim}
 
-\hspace{-0.68cm} But one of the biggest benefits can be found in the early detection of errors in the design. As (Houston and King, 1991) highlight as part of the CISM project at IBM we saw that benefit appear as part of our trading system model. Traders can only close their own trades in the model, but in the previous revision you could remove a trader while they still had open trades. Resulting in an undesired state, where open trades in the system could not be closed out. The models were amended so a trader could only be removed once all trades were marked as closed. Catching issues like this at a design stage is enormously beneficial. 
+\hspace{-0.68cm} However, one of the biggest benefits can be found in the early detection of errors in the design. As Houston and King (1991) highlight, as part of the CISM project at IBM, finding errors at the design stage rather than the implementation stage was enormously beneficial for the project. That same benefit appeared as we were developing the trading system model. \\
+\newline
+In the model, traders can only close their trades. However, one could remove a trader in a previous revision while still having open trades. This results in an undesired state where open trades in the system cannot be closed. The models were amended with a constraint in the Z model and a precondition and invariant in the B model, so a trader could only be removed from the trading system once all trades were marked as closed.
 
 \begin{zed}
 \forall t: \ran trades | t.status = Open @ t.owner \in users \\ 
@@ -1229,12 +1233,11 @@ END
 \begin{verbatim}
 !(t).(t: ran(trades) & t'status = Open => t'owner: users)
 \end{verbatim}
-
 \pagebreak
 
-\hspace{-0.68cm} But these advantages come at a cost. There is a learning curve for writing specifications with mathematical notation even though case studies differ on how step the curve is. (Mashkoor et al, 2018) references that even people with a PhD in computer science are often put off by a Z or B specification while amongst developers the picture is even worse whereas (Barden et all, 1991) claim that with minimal Z training and expert guidance picking up and writing specifications can be achieved for those with no background in formal methods. \\
-
-\hspace{-0.68cm} Our trading model is simple, but it isn’t too far a leap to imagine the below set comprehensions that return the number of open trades per trader being difficult to decipher for newcomers to the field. 
+\hspace{-0.68cm} However, these advantages come at a cost. There is a learning curve for writing specifications with mathematical notation, even though cases differ on how steep the curve is. Mashkoor et al, (2018) references that even people with a PhD in computer science are often put off by a Z or B specification, while the picture is even worse amongst developers. Whereas Barden et al. (1991) claims that with minimal Z training and expert guidance, picking up and writing specifications can be achieved for those with no background in formal methods. \\
+\newline
+\hspace{-0.68cm} This is reflected in our trading system model. If we extract the set comprehension present in the OpenTradeCountPerTrade output operator, which returns the number of open trades per trader, it is not difficult to imagine that newcomers to state-based modelling and formal methods would struggle to decipher the statements.
 
 \begin{zed}
 \{o: users @ o \mapsto \# \{t: \ran trades | t.owner = o \land t.status = Open\}\}
@@ -1244,10 +1247,18 @@ END
 {o•o: users | o |-> card({ t|t: ran(trades) & t'owner=o & t'status = Open })}
 \end{verbatim}
 
+Looking at Z specifically, it is a mature language that’s an ISO standard, and as Bowen (2016) stipulates, the reduction in research on the language will be partly due to its maturity. As we can see in our model, its constructs enable us to write expressive specifications, and as Barroca and McDermid (1992) point out, we are free to extend the language where we need to. With its use of schema and schema calculus, we can also tie smaller modules together to aid in modelling larger, more complex systems. \\
+\newline
+However, as Bowen (2016) notes, Z suffers from a less robust tooling ecosystem for other notations. The lack of appropriate tooling for proof is highlighted by Barden et al. (1991) as a key limiting factor. It is also important to remember that Z notation was designed with a specific purpose. As Woodcock and Davies (1996) explain, the notation is not for the description of nonfunctional properties such as performance, reliability or usability, where other supplementary formal methods would need to be adopted for such purposes. \\
+\newline
+Finally, looking at B, as Butler et al. (2020) write, B is among the formal methods of most significant industrial impact. Which Butlet et al. (2020) attribute to the strength of the tooling available for B. As Kaur et al. (2012) lists these capabilities out from model animation, deadlock detection, code and test generation, amongst other tooling supported for B, this highlights its biggest benefit. It enables users of B to gain confidence in their specifications while removing a lot of the manual work that would have been required had they developed their model using other methods. This was demonstrated when building the trading system model where model animation and interactively stepping through the various states helped highlight the issue with the previously mentioned remove trader operation. \\
+\newline
+There are gaps, however, as Bicarregui et al. (1997) discuss; for example, the code automatically generated from B required manual translation from the intermediate design outputted to the target language.
+
 \pagebreak
 \subsection*{Relationship between Z and B}
 
-Z and B, as discussed previously, share a common origin in Abrial, who has played a significant role in developing both methods. As both share the same mathematical foundation, based on set theory and first-order predicate logic, many of the constructs are shared. Statements in one can be translated to the other, as is seen in our trading system model in both Z and B, where functions, quantification, free types, set operators and much more can be expressed in both methods. 
+Z and B share a unique relationship partly due to their shared origin in Abrial, who has played a significant role in developing both methods. Both share the same mathematical foundation, based on set theory and first-order predicate logic. As a result, many of the constructs are shared, and statements in one can be translated to the other, as is seen in our trading system model in both Z and B, where functions, quantification, free types, set operators and much more can be expressed in both methods.
 \begin{zed}
 Identifier \pfun Trade \\
 \forall t: \ran trades | t.status = Open @ t.owner \in users \\
@@ -1262,7 +1273,7 @@ TRADER = { Joe, John, Jane, Joan }
 users := users \/ {u}
 \end{verbatim}
 
-\hspace{-0.68cm} However, they do immediately diverge when it comes to structure definitions. Z uses schemas that combine declarations with predicates and express states and operations that can apply to that state. At the same time, B is built around machine definitions, which include state declarations, invariants, and operations in an encapsulated object.
+\hspace{-0.68cm} However, they do immediately diverge when it comes to structure definitions. Z uses schemas that combine declarations with predicates to express states and operations that can apply to them. Meanwhile, B is built around machine definitions, including variables, invariants, and operations, among others, in an encapsulated definition.
 
 \begin{schema}{State / Operation}
 declaration \\
@@ -1281,7 +1292,8 @@ MACHINE State
 END
 \end{verbatim}
 
-\hspace{-0.68cm} This has knock on effects for other concepts that appear in both methods. Notably promotion that manifests in a different manner, promoting methods from other machine definitions versus explicitly defining operators that describe the linkage between local and global states. There are other subtler differences as well. In Z state invariants complement our explicit preconditions. However, in B, they need to be explicitly declared, or we risk violating the invariant. This can be seen with the remove trader operation in B which has the explicit precondition that only needs to be expressed as a constraint in the schema in Z.
+\hspace{-0.68cm} As a result, some shared concepts manifest in different ways. Notably, promotion where in B, one promotes to gain access to operations defined in other machines, whereas, in Z, we define explicit operators to describe the linkage between states. There are other subtler differences as well. In Z, state invariants complement our explicit preconditions but must be explicitly declared in B to avoid violating the invariant, as can be seen with the remove trader operation in B, which has the explicit precondition that only needs to be expressed as a constraint in Z.
+
 \begin{schema}{TradingSystem}
 trades: Identifier \pfun Trade \\
 users: \power Trader \\
@@ -1302,27 +1314,25 @@ RemoveTrader(u) =
   END;
 \end{verbatim}
 
-\hspace{-0.68cm} This divergence comes in part because B is an extension of Z with the stated aim of empowering users to be able to take specification to implementation through a step-by-step refinement process and enhanced tooling most notably proof and code generation. As such B sits at a lower level closer to code than Z notation is. \\
+\hspace{-0.68cm} This divergence is largely because B was designed to be an industrial extension of Z. Empowering users with an approach that enables one to take a formal description from its initial specification to implementation through a step-by-step refinement process and enhanced tooling, such as model animation, proof, and code generation. As such, B sits closer to code than Z notation, which emphasises defining what rather than how. \\
 \newline 
-\hspace{-0.68cm} Z is an excellent formal method for abstract modelling and producing specifications that focus on what, not how. B is a great tool for going from specification to implementation with step-by-step refinement and code generation. In many cases, it will be complementary to use both. Z to outline an initial design before being ported into a concrete B implementation that can be further refined in an iterative manner to produce an executable system.
+\hspace{-0.68cm} It, therefore, holds that Z is an excellent formal method for abstract modelling and producing specifications that focus on what, not how. B builds upon Z and enables users to build executable systems from refined specifications. In many cases, they are complementary methods, and it is advantageous to initially use Z to outline an initial design before being ported into a concrete B implementation so that the specification can be translated into an executable system.
 \subsection*{Conclusions}
 
 State based modelling is a powerful technique that enables users to describe and rationalise systems through formal descriptions. It typically involves clearly defining states, transitions, and constraints through mathematical notation to produce well-rounded and robust specifications. \\
 \newline
-Z and B both provide great ways to build state descriptions. Z is an excellent whiteboard tool that enables users to express stateful systems with mathematical precision and is supported by an ecosystem of tools. B builds on top of that heritage adding support for step-by-step refinement of models, code generation and many other features that enable users to go from a specification to an executable program. \\
+Z and B provide great ways to build state descriptions and complement each other. Z is an excellent abstract modelling tool that enables users to express stateful systems with mathematical precision. B builds on that heritage, adding support for step-by-step refinement of models, code generation, and many other features that enable users to go from a specification to an executable program. \\
 \newline
-There are clear limitations, a steep learning curve and the need for at least a cursory understanding of mathematical notation are clearly barriers to wider adoption in areas where the technique is not considered mandatory. Even with broader adoption, it still holds other limitations around how well formal methods can scale to large and complex systems, and how they will integrate with standard development practices that emphasise building without finalised requirements and designs. \\
+There are clear limitations; a learning curve based on the need for a cursory understanding of mathematical notation is a barrier to wider adoption in areas where the technique is not considered mandatory, such as safety critical systems. Even with broader adoption, it still holds limitations around how well formal methods can scale to larger, complex systems and how they integrate with standard development practices that emphasise building without finalised requirements and designs. \\
 \newline
-Regardless, state-based modelling and the formal methods of Z and B are powerful tools for practitioners who wish to remove ambiguous elements from designs and produce robust specifications for refined and tested systems. While there are limits to how far those benefits will stretch and how they could be adopted by others, they remain a powerful asset to be leveraged in developing both simple and complex systems. 
+Regardless, state-based modelling and the formal methods of Z and B are potent tools for practitioners who wish to remove ambiguous elements from designs and produce robust specifications for systems. While there are limits to how far those benefits will stretch and how others could adopt them, they remain a powerful asset to be leveraged in developing simple and complex systems. 
 \pagebreak
 
 \subsection*{References}
 
-Barden, R., Stepney, S. and Cooper, D. (1991). The use of Z. Workshops in computing, pp.99–124.
+Barden, R., Stepney, S. and Cooper, D. (1991). The use of Z. Workshops in computing, pp.99–124. \\
 \newline
 Barroca, L.M. and McDermid, J.A., 1992. Formal methods: Use and relevance for the development of safety-critical systems. The Computer Journal, 35(6), pp.579-599.
-\newline
-Mashkoor, A., Kossak, F. and Egyed, A. (2018). Evaluating the suitability of state-based formal methods for industrial deployment. Software: Practice and Experience, 48(12), pp.2350–2379.
 \newline
 Bicarregui, J.C., Clutterbuck, D.L., Finnie, G., Haughton, H., Lano, K., Lesan, H., Marsh, D.W.R.M., Matthews, B.M., Moulding, M.R., Newton, A.R. and Ritchie, B., 1997. Formal methods into practice: case studies in the application of the B method. IEE Proceedings-Software, 144(2), pp.119-133. \\
 \newline
@@ -1331,5 +1341,11 @@ Bowen, J.P., 2016. The Z notation: whence the cause and whither the course?. In 
 Butler, M., Körner, P., Krings, S., Lecomte, T., Leuschel, M., Mejia, L.F. and Voisin, L., 2020, August. The first twenty-five years of industrial use of the B-method. In International Conference on Formal Methods for Industrial Critical Systems (pp. 189-209). Cham: Springer International Publishing. \\
 \newline
 Houston, I. and King, S., 1991. CICS project report experiences and results from the use of Z in IBM. In VDM'91 Formal Software Development Methods: 4th International Symposium of VDM Europe Noordwijkerhout, The Netherlands, October 1991 Proceedings 4 (pp. 588-596). Springer Berlin Heidelberg. \\
+\newline
+Kaur, A., Gulati, S. and Singh, S. (2012). A comparative study of two formal specification languages. Proceedings of the Second International Conference on Computational Science, Engineering and Information Technology - CCSEIT ’12. [online] doi:https://doi.org/10.1145/2393216.2393304. \\
+\newline
+Mashkoor, A., Kossak, F. and Egyed, A. (2018). Evaluating the suitability of state-based formal methods for industrial deployment. Software: Practice and Experience, 48(12), pp.2350–2379. \\
+\newline
+Woodcock, J. and Davies, J. (1996). Using Z. \\
 
 \end{document}
